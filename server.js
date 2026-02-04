@@ -375,13 +375,7 @@ async function sendCheckInNotification(booking, timeframe) {
   // Send to all admin chat IDs
   for (const chatId of ADMIN_CHAT_IDS) {
     try {
-      await bot.sendMessage(chatId, message, {
-        reply_markup: {
-          inline_keyboard: [[
-            { text: '📞 Позвонить', url: `tel:${booking.guest_phone}` }
-          ]]
-        }
-      });
+      await bot.sendMessage(chatId, message);
       console.log(`✅ Notification sent to ${chatId} for booking ${booking.id} (${timeframe})`);
     } catch (error) {
       console.error(`Error sending notification to ${chatId}:`, error);
