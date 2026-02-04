@@ -407,6 +407,18 @@ app.listen(PORT, '0.0.0.0', async () => {
       const webhookUrl = `${WEBHOOK_URL}/api/telegram-webhook`;
       await bot.setWebHook(webhookUrl);
       console.log(`✅ Telegram webhook set to: ${webhookUrl}`);
+
+      // Set up menu button to open Mini App
+      await bot.setChatMenuButton({
+        menu_button: {
+          type: 'web_app',
+          text: '🏠 Гостевой дом',
+          web_app: {
+            url: WEBHOOK_URL
+          }
+        }
+      });
+      console.log(`✅ Telegram menu button set: "🏠 Гостевой дом"`);
     } catch (error) {
       console.error('❌ Failed to set Telegram webhook:', error.message);
     }
