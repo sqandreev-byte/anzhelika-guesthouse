@@ -13,7 +13,9 @@ const PORT = process.env.PORT || 3000;
 
 // Telegram Bot
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7967661979:AAGlUE1mJPL_tF0gHbY1wl2-wlYW0O69Ao8';
-const bot = TELEGRAM_BOT_TOKEN ? new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true }) : null;
+// Temporarily disable polling to fix 409 conflict - will use webhooks later
+const bot = null; // Disabled for now
+// const bot = TELEGRAM_BOT_TOKEN ? new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true }) : null;
 
 // Admin chat IDs for notifications
 const ADMIN_CHAT_IDS = ['878338264', '1091714465', '1032465864'];
