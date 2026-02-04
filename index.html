@@ -3,7 +3,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Анжелика - Гостевой Дом</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -45,6 +45,16 @@
             top: 0;
             width: auto;
         }
+        /* Desktop adaptations */
+        @media (min-width: 768px) {
+            #root {
+                max-width: 1200px !important;
+                box-shadow: 0 0 50px rgba(0,0,0,0.1);
+            }
+            body {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+        }
     </style>
 <script type="importmap">
 {
@@ -61,7 +71,7 @@
 <link rel="stylesheet" href="/index.css">
 </head>
 <body class="bg-slate-50 text-slate-900 overflow-hidden">
-    <div id="root" class="h-screen w-screen flex flex-col"></div>
+    <div id="root" class="h-screen w-screen flex flex-col mx-auto max-w-[480px] md:max-w-full"></div>
 <script type="module" src="/index.tsx"></script>
 </body>
 </html>
