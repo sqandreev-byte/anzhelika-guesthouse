@@ -19,22 +19,23 @@ const BookingDetails: React.FC<BookingDetailsProps> = ({ booking, onClose, onEdi
   const channel = booking.contactChannel ? CHANNEL_MAP[booking.contactChannel] : null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-slate-50 overflow-hidden">
-      {/* Header */}
-      <header className="flex items-center justify-between p-4 bg-white border-b border-slate-100 sticky top-0 z-10">
-        <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors">
-          <ChevronLeft size={28} />
-        </button>
-        <h2 className="text-xl font-bold text-slate-900">Бронирование</h2>
-        <button 
-          onClick={() => onEdit(booking)}
-          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
-        >
-          <Edit2 size={24} />
-        </button>
-      </header>
+    <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center md:p-8">
+      <div className="bg-slate-50 w-full h-full md:w-[600px] md:h-auto md:max-h-[90vh] md:rounded-3xl overflow-hidden flex flex-col shadow-2xl">
+        {/* Header */}
+        <header className="flex items-center justify-between p-4 bg-white border-b border-slate-100 sticky top-0 z-10">
+          <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors">
+            <ChevronLeft size={28} />
+          </button>
+          <h2 className="text-xl font-bold text-slate-900">Бронирование</h2>
+          <button
+            onClick={() => onEdit(booking)}
+            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+          >
+            <Edit2 size={24} />
+          </button>
+        </header>
 
-      <div className="flex-1 overflow-y-auto p-5 space-y-6 pb-24 no-scrollbar">
+        <div className="flex-1 overflow-y-auto p-5 space-y-6 pb-6 md:pb-6 no-scrollbar">
         {/* Guest Hero Section */}
         <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 text-center relative overflow-hidden">
           {channel && (
@@ -198,6 +199,7 @@ const BookingDetails: React.FC<BookingDetailsProps> = ({ booking, onClose, onEdi
             </p>
           </section>
         )}
+        </div>
       </div>
     </div>
   );

@@ -17,13 +17,13 @@ const RoomsList: React.FC<RoomsListProps> = ({ bookings, onOpenCalendar, onAddBo
   const now = new Date();
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 pt-8 pb-24 no-scrollbar bg-[#f8fafc]">
+    <div className="flex-1 overflow-y-auto px-4 md:px-8 lg:px-12 pt-8 pb-24 md:pb-12 no-scrollbar bg-[#f8fafc]">
       <header className="mb-6 px-1">
         <h1 className="text-[34px] font-black text-[#0f172a] leading-tight">Номера</h1>
         <p className="text-slate-500 font-medium text-lg">Ваш жилой фонд</p>
       </header>
 
-      <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
         {ROOMS.map(room => {
           const currentBooking = bookings.find(b => 
             b.roomId === room.id && 

@@ -115,24 +115,25 @@ const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <header className="flex items-center justify-between p-4 border-b border-slate-100 bg-white sticky top-0 z-10">
-        <button onClick={onClose} type="button" className="p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors">
-          <X size={24} />
-        </button>
-        <h2 className="text-xl font-bold text-slate-900">
-          {booking ? 'Редактировать' : 'Новое бронирование'}
-        </h2>
-        <button 
-          onClick={() => handleSubmit()}
-          type="button"
-          className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold active:scale-95 transition-all shadow-lg shadow-indigo-100"
-        >
-          {booking ? 'Сохранить' : 'Создать'}
-        </button>
-      </header>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center md:p-8 animate-in fade-in duration-300">
+      <div className="bg-white w-full h-full md:w-[700px] md:h-auto md:max-h-[90vh] md:rounded-3xl overflow-hidden flex flex-col shadow-2xl">
+        <header className="flex items-center justify-between p-4 border-b border-slate-100 bg-white sticky top-0 z-10">
+          <button onClick={onClose} type="button" className="p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors">
+            <X size={24} />
+          </button>
+          <h2 className="text-xl font-bold text-slate-900">
+            {booking ? 'Редактировать' : 'Новое бронирование'}
+          </h2>
+          <button
+            onClick={() => handleSubmit()}
+            type="button"
+            className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold active:scale-95 transition-all shadow-lg shadow-indigo-100"
+          >
+            {booking ? 'Сохранить' : 'Создать'}
+          </button>
+        </header>
 
-      <form className="flex-1 overflow-y-auto p-5 space-y-8 no-scrollbar pb-20" onSubmit={handleSubmit}>
+        <form className="flex-1 overflow-y-auto p-5 space-y-8 no-scrollbar pb-6 md:pb-6" onSubmit={handleSubmit}>
         {/* Guest Info */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 text-slate-400 font-bold text-[11px] uppercase tracking-wider">
@@ -372,7 +373,8 @@ const BookingForm: React.FC<BookingFormProps> = ({
             Удалить бронь
           </button>
         )}
-      </form>
+        </form>
+      </div>
     </div>
   );
 };

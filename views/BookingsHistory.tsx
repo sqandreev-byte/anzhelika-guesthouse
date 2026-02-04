@@ -23,12 +23,12 @@ const BookingsHistory: React.FC<BookingsHistoryProps> = ({ bookings, onOpenBooki
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white">
-      <header className="px-5 pt-10 pb-4 bg-white">
+      <header className="px-5 md:px-8 lg:px-12 pt-10 pb-4 bg-white">
         <h1 className="text-[34px] font-black text-[#0f172a] tracking-tight mb-6 leading-none">Бронирования</h1>
-        
-        <div className="relative mb-6">
+
+        <div className="relative mb-6 max-w-2xl">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-          <input 
+          <input
             type="text"
             placeholder="Поиск по имени или телефону..."
             className="w-full h-14 bg-slate-100/70 rounded-2xl pl-12 pr-4 font-medium outline-none focus:bg-white border border-transparent focus:border-indigo-200 transition-all text-slate-900"
@@ -60,18 +60,19 @@ const BookingsHistory: React.FC<BookingsHistoryProps> = ({ bookings, onOpenBooki
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-5 pt-2 pb-24 no-scrollbar space-y-4">
-        {filtered.map(booking => {
-          const room = ROOMS.find(r => r.id === booking.roomId);
-          const status = STATUS_MAP[booking.status];
-          const remaining = booking.totalPrice - booking.prepayment;
+      <div className="flex-1 overflow-y-auto px-5 md:px-8 lg:px-12 pt-2 pb-24 md:pb-12 no-scrollbar">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map(booking => {
+            const room = ROOMS.find(r => r.id === booking.roomId);
+            const status = STATUS_MAP[booking.status];
+            const remaining = booking.totalPrice - booking.prepayment;
 
-          return (
-            <div 
-              key={booking.id}
-              onClick={() => onOpenBooking(booking)}
-              className="bg-white p-5 rounded-[30px] border border-slate-100 shadow-[0_4px_20px_-5px_rgba(0,0,0,0.05)] active:scale-[0.98] transition-transform flex items-center justify-between"
-            >
+            return (
+              <div
+                key={booking.id}
+                onClick={() => onOpenBooking(booking)}
+                className="bg-white p-5 rounded-[30px] border border-slate-100 shadow-[0_4px_20px_-5px_rgba(0,0,0,0.05)] active:scale-[0.98] transition-transform flex items-center justify-between"
+              >
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-1.5">
                   <span className="font-bold text-xl text-slate-900">{booking.guestName}</span>
@@ -92,8 +93,9 @@ const BookingsHistory: React.FC<BookingsHistoryProps> = ({ bookings, onOpenBooki
               </div>
               <ChevronRight size={20} className="text-slate-300 ml-4" />
             </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

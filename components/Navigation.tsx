@@ -16,7 +16,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
   ];
 
   return (
-    <nav className="bg-white border-t border-slate-200 pb-safe-area-inset-bottom h-20 flex items-center justify-around px-4">
+    <nav className="md:hidden bg-white border-t border-slate-200 pb-safe-area-inset-bottom h-20 flex items-center justify-around px-4">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;

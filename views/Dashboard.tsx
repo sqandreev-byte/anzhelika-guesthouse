@@ -38,9 +38,9 @@ const Dashboard: React.FC<DashboardProps> = ({ bookings, onOpenBooking, onUpdate
     const status = STATUS_MAP[booking.status];
 
     return (
-      <div 
+      <div
         onClick={() => onOpenBooking(booking)}
-        className="bg-white rounded-[28px] p-5 shadow-sm border border-slate-100 mb-4 active:scale-[0.98] transition-transform cursor-pointer"
+        className="bg-white rounded-[28px] p-5 shadow-sm border border-slate-100 active:scale-[0.98] transition-transform cursor-pointer"
       >
         <div className="flex justify-between items-start mb-4">
           <div>
@@ -114,13 +114,13 @@ const Dashboard: React.FC<DashboardProps> = ({ bookings, onOpenBooking, onUpdate
   };
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 pt-8 pb-24 no-scrollbar">
+    <div className="flex-1 overflow-y-auto px-4 md:px-8 lg:px-12 pt-8 pb-24 md:pb-12 no-scrollbar">
       <header className="mb-8 px-1">
         <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-1">Привет,</h1>
         <p className="text-slate-500 text-xl font-medium tracking-tight">Гостевой дом «Анжелика»</p>
       </header>
 
-      <div className="grid grid-cols-2 gap-4 mb-10">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         {stats.map((s, i) => (
           <div key={i} className={`${s.bg} rounded-[28px] p-5 border border-white shadow-sm`}>
             <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">{s.label}</p>
@@ -136,17 +136,19 @@ const Dashboard: React.FC<DashboardProps> = ({ bookings, onOpenBooking, onUpdate
             <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Тихо... пока ничего</p>
           </div>
         ) : (
-          <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {arrivalsToday.map(b => <BookingCard key={b.id} booking={b} type="arrival" />)}
             {departuresToday.map(b => <BookingCard key={b.id} booking={b} type="departure" />)}
-          </>
+          </div>
         )}
       </section>
 
       <section>
         <h2 className="text-2xl font-bold text-slate-900 mb-5 px-1 tracking-tight">Будущие гости</h2>
         {upcoming.length > 0 ? (
-          upcoming.map(b => <BookingCard key={b.id} booking={b} type="upcoming" />)
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {upcoming.map(b => <BookingCard key={b.id} booking={b} type="upcoming" />)}
+          </div>
         ) : (
           <p className="text-slate-400 italic font-medium px-1">Нет будущих бронирований</p>
         )}

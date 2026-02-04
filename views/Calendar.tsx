@@ -36,9 +36,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, onOpenBooking, on
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white">
-      <header className="p-4 border-b border-slate-100">
+      <header className="p-4 md:p-6 lg:p-8 border-b border-slate-100">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-slate-900">Календарь занятости</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900">Календарь занятости</h2>
           <div className="flex gap-2">
             <button onClick={prevPeriod} className="p-2 hover:bg-slate-50 rounded-full border border-slate-100">
               <ChevronLeft size={20} className="text-slate-600" />
@@ -72,14 +72,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, onOpenBooking, on
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto bg-slate-50/50">
+      <div className="flex-1 overflow-auto bg-slate-50/50 pb-20 md:pb-4">
         <div className="inline-block min-w-full">
-          <div className="grid grid-cols-[120px_repeat(14,1fr)] bg-white sticky top-0 z-10 border-b border-slate-100">
+          <div className="grid grid-cols-[120px_repeat(14,1fr)] md:grid-cols-[160px_repeat(14,1fr)] bg-white sticky top-0 z-10 border-b border-slate-100">
             <div className="p-3 bg-white"></div>
             {days.map(day => (
-              <div key={day.toISOString()} className="p-2 text-center flex flex-col items-center justify-center border-l border-slate-50">
-                <span className="text-[10px] text-slate-400 uppercase font-bold">{format(day, 'EE', { locale: ru })}</span>
-                <span className={`text-sm font-bold ${isSameDay(day, new Date()) ? 'text-indigo-600' : 'text-slate-700'}`}>
+              <div key={day.toISOString()} className="p-2 md:p-3 text-center flex flex-col items-center justify-center border-l border-slate-50">
+                <span className="text-[10px] md:text-xs text-slate-400 uppercase font-bold">{format(day, 'EE', { locale: ru })}</span>
+                <span className={`text-sm md:text-base font-bold ${isSameDay(day, new Date()) ? 'text-indigo-600' : 'text-slate-700'}`}>
                   {format(day, 'd')}
                 </span>
               </div>
@@ -88,9 +88,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, onOpenBooking, on
 
           <div className="divide-y divide-slate-100">
             {filteredRooms.map(room => (
-              <div key={room.id} className="grid grid-cols-[120px_repeat(14,1fr)] min-h-[100px]">
-                <div className="p-3 bg-white border-r border-slate-100 flex items-center sticky left-0 z-[5]">
-                  <span className="font-bold text-xs text-slate-600">{room.name}</span>
+              <div key={room.id} className="grid grid-cols-[120px_repeat(14,1fr)] md:grid-cols-[160px_repeat(14,1fr)] min-h-[100px]">
+                <div className="p-3 md:p-4 bg-white border-r border-slate-100 flex items-center sticky left-0 z-[5]">
+                  <span className="font-bold text-xs md:text-sm text-slate-600">{room.name}</span>
                 </div>
                 {days.map(day => {
                   const booking = bookings.find(b => {
@@ -141,12 +141,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, onOpenBooking, on
           </div>
         </div>
       </div>
-      
-      <div className="p-4 bg-white border-t border-slate-100 flex items-center justify-center gap-4 flex-wrap">
+
+
+      <div className="p-4 md:p-6 bg-white border-t border-slate-100 flex items-center justify-center gap-4 md:gap-6 flex-wrap">
           {Object.entries(STATUS_MAP).map(([key, config]) => (
             <div key={key} className="flex items-center gap-1.5">
-              <div className={`w-3 h-3 rounded-full border ${config.bg} ${config.border}`} />
-              <span className="text-[10px] text-slate-500 font-medium uppercase">{config.label}</span>
+              <div className={`w-3 h-3 md:w-4 md:h-4 rounded-full border ${config.bg} ${config.border}`} />
+              <span className="text-[10px] md:text-xs text-slate-500 font-medium uppercase">{config.label}</span>
             </div>
           ))}
       </div>
