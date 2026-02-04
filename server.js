@@ -13,9 +13,10 @@ const PORT = process.env.PORT || 3000;
 
 // Telegram Bot
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7967661979:AAGlUE1mJPL_tF0gHbY1wl2-wlYW0O69Ao8';
-// Temporarily disable polling to fix 409 conflict - will use webhooks later
-const bot = null; // Disabled for now
-// const bot = TELEGRAM_BOT_TOKEN ? new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true }) : null;
+const WEBHOOK_URL = process.env.WEBHOOK_URL || 'https://anzhelika-guesthouse-production.up.railway.app';
+
+// Use webhooks instead of polling (production-ready)
+const bot = TELEGRAM_BOT_TOKEN ? new TelegramBot(TELEGRAM_BOT_TOKEN) : null;
 
 // Admin chat IDs for notifications
 const ADMIN_CHAT_IDS = ['878338264', '1091714465', '1032465864'];
@@ -232,6 +233,14 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// Telegram webhook endpoint
+app.post('/api/telegram-webhook', (req, res) => {
+  if (bot) {
+    bot.processUpdate(req.body);
+  }
+  res.sendStatus(200);
+});
+
 // Handle SPA routing - return index.html for all non-API routes
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {
@@ -251,10 +260,6 @@ if (bot) {
     } else {
       bot.sendMessage(chatId, '⚠️ Ваш chat ID не зарегистрирован.\n\nВаш ID: ' + chatId + '\n\nОбратитесь к администратору для добавления.');
     }
-  });
-
-  bot.on('polling_error', (error) => {
-    console.error('Telegram bot polling error:', error);
   });
 }
 
@@ -370,5 +375,16 @@ app.listen(PORT, '0.0.0.0', async () => {
     await initDatabase();
   } else {
     console.warn('⚠️  DATABASE_URL not set. API endpoints will not work.');
+  }
+
+  // Set up Telegram webhook
+  if (bot && TELEGRAM_BOT_TOKEN) {
+    try {
+      const webhookUrl = `${WEBHOOK_URL}/api/telegram-webhook`;
+      await bot.setWebHook(webhookUrl);
+      console.log(`✅ Telegram webhook set to: ${webhookUrl}`);
+    } catch (error) {
+      console.error('❌ Failed to set Telegram webhook:', error.message);
+    }
   }
 });
