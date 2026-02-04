@@ -27,9 +27,19 @@ const Dashboard: React.FC<DashboardProps> = ({ bookings, onOpenBooking, onUpdate
     return !isToday(checkIn) && isAfter(checkIn, today) && b.status !== 'checked_in';
   }).slice(0, 5);
 
+  // Calculate additional stats
+  const currentGuests = bookings.filter(b => b.status === 'checked_in').length;
+  const totalRooms = ROOMS.length;
+  const occupancyRate = totalRooms > 0 ? Math.round((currentGuests / totalRooms) * 100) : 0;
+  const totalRevenue = bookings
+    .filter(b => b.status !== 'cancelled')
+    .reduce((sum, b) => sum + b.totalPrice, 0);
+
   const stats = [
     { label: 'Заезды сегодня', value: arrivalsToday.length, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     { label: 'Выезды сегодня', value: departuresToday.length, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { label: 'Занято сейчас', value: `${currentGuests}/${totalRooms}`, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Загрузка', value: `${occupancyRate}%`, color: 'text-blue-600', bg: 'bg-blue-50' },
   ];
 
   const BookingCard = ({ booking, type }: { booking: Booking, type: 'arrival' | 'departure' | 'upcoming' }) => {
@@ -136,7 +146,7 @@ const Dashboard: React.FC<DashboardProps> = ({ bookings, onOpenBooking, onUpdate
             <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Тихо... пока ничего</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
             {arrivalsToday.map(b => <BookingCard key={b.id} booking={b} type="arrival" />)}
             {departuresToday.map(b => <BookingCard key={b.id} booking={b} type="departure" />)}
           </div>
@@ -146,7 +156,7 @@ const Dashboard: React.FC<DashboardProps> = ({ bookings, onOpenBooking, onUpdate
       <section>
         <h2 className="text-2xl font-bold text-slate-900 mb-5 px-1 tracking-tight">Будущие гости</h2>
         {upcoming.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
             {upcoming.map(b => <BookingCard key={b.id} booking={b} type="upcoming" />)}
           </div>
         ) : (
