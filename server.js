@@ -378,7 +378,7 @@ async function sendCheckInNotification(booking, timeframe) {
       await bot.sendMessage(chatId, message, {
         reply_markup: {
           inline_keyboard: [[
-            { text: '👁 Открыть бронь', url: `${WEBHOOK_URL}/?booking=${booking.id}` }
+            { text: '👁 Открыть бронь', web_app: { url: `${WEBHOOK_URL}/?booking=${booking.id}` } }
           ]]
         }
       });
