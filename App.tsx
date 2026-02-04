@@ -44,6 +44,26 @@ const App: React.FC = () => {
     loadBookings();
   }, []);
 
+  // Auto-refresh bookings every 10 seconds (only when not editing)
+  useEffect(() => {
+    const refreshBookings = async () => {
+      // Don't refresh if user is editing or viewing details
+      if (isFormOpen || viewingBooking) return;
+
+      try {
+        const data = await api.getBookings();
+        setBookings(data);
+      } catch (e) {
+        console.error("Auto-refresh failed", e);
+        // Silent fail - don't show error for background refresh
+      }
+    };
+
+    const intervalId = setInterval(refreshBookings, 10000); // 10 seconds
+
+    return () => clearInterval(intervalId);
+  }, [isFormOpen, viewingBooking]);
+
   const handleOpenDetails = (booking: Booking) => {
     setViewingBooking(booking);
   };
