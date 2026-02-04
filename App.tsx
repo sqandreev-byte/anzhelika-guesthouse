@@ -44,6 +44,21 @@ const App: React.FC = () => {
     loadBookings();
   }, []);
 
+  // Open booking from URL parameter (from Telegram notification)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const bookingId = params.get('booking');
+
+    if (bookingId && bookings.length > 0) {
+      const booking = bookings.find(b => b.id === bookingId);
+      if (booking) {
+        handleOpenDetails(booking);
+        // Clean up URL without reloading page
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  }, [bookings]);
+
   // Auto-refresh bookings every 10 seconds (only when not editing)
   useEffect(() => {
     const refreshBookings = async () => {
