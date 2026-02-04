@@ -284,7 +284,15 @@ async function checkUpcomingCheckIns() {
     `);
 
     for (const row of result.rows) {
-      const checkInTime = new Date(row.check_in);
+      // Use early check-in time if specified, otherwise use standard check-in time
+      let checkInTime = new Date(row.check_in);
+
+      if (row.early_check_in && row.early_check_in_time) {
+        // Replace time with early check-in time
+        const [hours, minutes] = row.early_check_in_time.split(':');
+        checkInTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      }
+
       const hoursUntilCheckIn = (checkInTime - now) / (1000 * 60 * 60);
 
       // 24 hour notification
