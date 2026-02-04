@@ -45,14 +45,19 @@
             top: 0;
             width: auto;
         }
-        /* Desktop adaptations */
+        /* Desktop adaptations - mobile-first design centered on desktop */
         @media (min-width: 768px) {
             #root {
-                max-width: 1200px !important;
-                box-shadow: 0 0 50px rgba(0,0,0,0.1);
+                max-width: 480px !important;
+                margin: 0 auto !important;
+                box-shadow: 0 0 50px rgba(0,0,0,0.15);
+                border-radius: 0;
             }
             body {
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
         }
     </style>
@@ -71,7 +76,7 @@
 <link rel="stylesheet" href="/index.css">
 </head>
 <body class="bg-slate-50 text-slate-900 overflow-hidden">
-    <div id="root" class="h-screen w-screen flex flex-col mx-auto max-w-[480px] md:max-w-full"></div>
+    <div id="root" class="h-screen w-screen flex flex-col"></div>
 <script type="module" src="/index.tsx"></script>
 </body>
 </html>
