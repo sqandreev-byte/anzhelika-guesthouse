@@ -29,9 +29,12 @@ export const formatDate = (date: string, pattern: string = 'd MMM'): string => {
 
 export const checkCollision = (bookings: Booking[], newBooking: Partial<Booking>): Booking | null => {
   if (!newBooking.roomId || !newBooking.checkIn || !newBooking.checkOut) return null;
-  
+
+  // Use date-only comparison (ignore time) to allow same-day check-out/check-in
   const newStart = new Date(newBooking.checkIn);
+  newStart.setHours(0, 0, 0, 0);
   const newEnd = new Date(newBooking.checkOut);
+  newEnd.setHours(0, 0, 0, 0);
 
   return bookings.find(b => {
     if (b.id === newBooking.id) return false;
@@ -39,8 +42,12 @@ export const checkCollision = (bookings: Booking[], newBooking: Partial<Booking>
     if (b.status === 'cancelled') return false;
 
     const bStart = new Date(b.checkIn);
+    bStart.setHours(0, 0, 0, 0);
     const bEnd = new Date(b.checkOut);
+    bEnd.setHours(0, 0, 0, 0);
 
+    // Allow same-day transitions: check-out and check-in on the same day is OK
+    // Conflict exists only if date ranges actually overlap (not just touch at boundaries)
     return areIntervalsOverlapping(
       { start: newStart, end: newEnd },
       { start: bStart, end: bEnd },
