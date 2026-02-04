@@ -272,16 +272,23 @@ const ROOM_NAMES = {
 
 // Check for upcoming check-ins and send notifications
 async function checkUpcomingCheckIns() {
-  if (!bot || ADMIN_CHAT_IDS.length === 0) return;
+  if (!bot || ADMIN_CHAT_IDS.length === 0) {
+    console.log('⚠️  Notification check skipped: bot or admin IDs not configured');
+    return;
+  }
 
   try {
     const now = new Date();
+    console.log(`🔍 Checking for upcoming check-ins at ${now.toLocaleString('ru-RU')}`);
+
     const result = await pool.query(`
       SELECT * FROM bookings
       WHERE status IN ('confirmed', 'prepaid')
       AND check_in > NOW()
       ORDER BY check_in ASC
     `);
+
+    console.log(`📋 Found ${result.rows.length} upcoming bookings`);
 
     for (const row of result.rows) {
       // Use early check-in time if specified, otherwise use standard check-in time
@@ -291,24 +298,31 @@ async function checkUpcomingCheckIns() {
         // Replace time with early check-in time
         const [hours, minutes] = row.early_check_in_time.split(':');
         checkInTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        console.log(`  ⏰ Booking ${row.id} has early check-in at ${row.early_check_in_time}`);
       }
 
       const hoursUntilCheckIn = (checkInTime - now) / (1000 * 60 * 60);
+      console.log(`  📅 Booking ${row.id} (${row.guest_name}): ${hoursUntilCheckIn.toFixed(2)} hours until check-in`);
+      console.log(`     24h sent: ${row.notification_24h_sent}, 2h sent: ${row.notification_2h_sent}`);
 
       // 24 hour notification
       if (hoursUntilCheckIn <= 24 && hoursUntilCheckIn > 23 && !row.notification_24h_sent) {
+        console.log(`  🔔 Sending 24h notification for booking ${row.id}`);
         await sendCheckInNotification(row, '24 часа');
         await pool.query('UPDATE bookings SET notification_24h_sent = TRUE WHERE id = $1', [row.id]);
       }
 
       // 2 hour notification
       if (hoursUntilCheckIn <= 2 && hoursUntilCheckIn > 1 && !row.notification_2h_sent) {
+        console.log(`  🔔 Sending 2h notification for booking ${row.id}`);
         await sendCheckInNotification(row, '2 часа');
         await pool.query('UPDATE bookings SET notification_2h_sent = TRUE WHERE id = $1', [row.id]);
       }
     }
+
+    console.log('✅ Check completed');
   } catch (error) {
-    console.error('Error checking upcoming check-ins:', error);
+    console.error('❌ Error checking upcoming check-ins:', error);
   }
 }
 
@@ -366,13 +380,6 @@ async function sendCheckInNotification(booking, timeframe) {
   }
 }
 
-// Start notification checker (every 5 minutes for faster response)
-if (bot && process.env.DATABASE_URL) {
-  setInterval(checkUpcomingCheckIns, 5 * 60 * 1000); // Every 5 minutes
-  // Also check immediately on startup
-  setTimeout(checkUpcomingCheckIns, 5000); // After 5 seconds
-}
-
 // Start server
 app.listen(PORT, '0.0.0.0', async () => {
   console.log(`✅ Server running on http://0.0.0.0:${PORT}`);
@@ -394,5 +401,14 @@ app.listen(PORT, '0.0.0.0', async () => {
     } catch (error) {
       console.error('❌ Failed to set Telegram webhook:', error.message);
     }
+  }
+
+  // Start notification checker (every 5 minutes for faster response)
+  if (bot && process.env.DATABASE_URL) {
+    console.log('🔔 Starting notification checker...');
+    setInterval(checkUpcomingCheckIns, 5 * 60 * 1000); // Every 5 minutes
+    // Also check immediately on startup
+    setTimeout(checkUpcomingCheckIns, 5000); // After 5 seconds
+    console.log('✅ Notification checker started (checks every 5 minutes)');
   }
 });
