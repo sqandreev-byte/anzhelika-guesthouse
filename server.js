@@ -358,9 +358,9 @@ async function sendCheckInNotification(booking, timeframe) {
   }
 }
 
-// Start notification checker (every hour)
+// Start notification checker (every 5 minutes for faster response)
 if (bot && process.env.DATABASE_URL) {
-  setInterval(checkUpcomingCheckIns, 60 * 60 * 1000); // Every hour
+  setInterval(checkUpcomingCheckIns, 5 * 60 * 1000); // Every 5 minutes
   // Also check immediately on startup
   setTimeout(checkUpcomingCheckIns, 5000); // After 5 seconds
 }
