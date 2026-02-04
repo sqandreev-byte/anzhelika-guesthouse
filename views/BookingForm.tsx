@@ -161,6 +161,41 @@ const BookingForm: React.FC<BookingFormProps> = ({
           </div>
         </section>
 
+        {/* Contact Channel & Source */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-slate-400 font-bold text-[11px] uppercase tracking-wider">
+            <Globe size={14} />
+            <span>Канал связи и источник</span>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {(['telegram', 'whatsapp', 'vk', 'max', 'other'] as ContactChannel[]).map(channel => (
+                <button
+                  key={channel}
+                  type="button"
+                  onClick={() => handleChange('contactChannel', channel)}
+                  className={`px-5 py-3 rounded-2xl font-bold text-sm transition-all ${
+                    formData.contactChannel === channel
+                      ? 'bg-[#4f46e5] text-white shadow-lg shadow-indigo-200'
+                      : 'bg-slate-100 text-slate-600 active:bg-slate-200'
+                  }`}
+                >
+                  {CHANNEL_MAP[channel].label}
+                </button>
+              ))}
+            </div>
+
+            <input
+              type="text"
+              placeholder="Откуда узнали? (Авито, Сарафан, и т.д.)"
+              className="w-full h-14 bg-slate-50 rounded-2xl px-5 font-medium text-slate-700 border border-transparent focus:border-indigo-300 focus:bg-white outline-none transition-all shadow-inner"
+              value={formData.contactSource || ''}
+              onChange={(e) => handleChange('contactSource', e.target.value)}
+            />
+          </div>
+        </section>
+
         {/* Room & Status */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 text-slate-400 font-bold text-[11px] uppercase tracking-wider">
@@ -190,6 +225,58 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 </select>
                 <ChevronDown size={18} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
              </div>
+          </div>
+        </section>
+
+        {/* Guests */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-slate-400 font-bold text-[11px] uppercase tracking-wider">
+            <User size={14} />
+            <span>Количество гостей</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-slate-50 rounded-2xl p-4 shadow-inner">
+              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">Взрослые</p>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => formData.adults && formData.adults > 1 && handleChange('adults', formData.adults - 1)}
+                  className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-600 active:scale-90 transition-all"
+                >
+                  <Minus size={20} strokeWidth={3} />
+                </button>
+                <span className="text-2xl font-black text-slate-900 flex-1 text-center">{formData.adults || 0}</span>
+                <button
+                  type="button"
+                  onClick={() => handleChange('adults', (formData.adults || 0) + 1)}
+                  className="w-10 h-10 rounded-full bg-indigo-600 shadow-lg shadow-indigo-200 flex items-center justify-center text-white active:scale-90 transition-all"
+                >
+                  <Plus size={20} strokeWidth={3} />
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl p-4 shadow-inner">
+              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">Дети</p>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => formData.kids && formData.kids > 0 && handleChange('kids', formData.kids - 1)}
+                  className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-600 active:scale-90 transition-all"
+                >
+                  <Minus size={20} strokeWidth={3} />
+                </button>
+                <span className="text-2xl font-black text-slate-900 flex-1 text-center">{formData.kids || 0}</span>
+                <button
+                  type="button"
+                  onClick={() => handleChange('kids', (formData.kids || 0) + 1)}
+                  className="w-10 h-10 rounded-full bg-indigo-600 shadow-lg shadow-indigo-200 flex items-center justify-center text-white active:scale-90 transition-all"
+                >
+                  <Plus size={20} strokeWidth={3} />
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -259,6 +346,147 @@ const BookingForm: React.FC<BookingFormProps> = ({
               >
                 <Plus size={24} strokeWidth={3} />
               </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Special Requirements */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-slate-400 font-bold text-[11px] uppercase tracking-wider">
+            <Car size={14} />
+            <span>Особые требования</span>
+          </div>
+
+          <div className="space-y-3">
+            {/* Parking */}
+            <div
+              onClick={() => handleChange('parking', !formData.parking)}
+              className={`rounded-2xl p-5 cursor-pointer transition-all border-2 ${
+                formData.parking
+                  ? 'bg-indigo-50 border-indigo-300'
+                  : 'bg-slate-50 border-transparent'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                    formData.parking
+                      ? 'bg-indigo-600 border-indigo-600'
+                      : 'bg-white border-slate-300'
+                  }`}>
+                    {formData.parking && (
+                      <div className="w-3 h-3 bg-white rounded-full"></div>
+                    )}
+                  </div>
+                  <span className="font-bold text-slate-700 flex items-center gap-2">
+                    <Car size={18} className="text-indigo-600" />
+                    Парковка
+                  </span>
+                </div>
+                <span className={`text-xs font-black uppercase px-3 py-1.5 rounded-lg ${
+                  formData.parking
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-slate-200 text-slate-500'
+                }`}>
+                  {formData.parking ? 'НУЖНА' : 'НЕТ'}
+                </span>
+              </div>
+            </div>
+
+            {/* Early Check-In */}
+            <div className={`rounded-2xl p-5 border-2 transition-all ${
+              formData.earlyCheckIn
+                ? 'bg-indigo-50 border-indigo-300'
+                : 'bg-slate-50 border-transparent'
+            }`}>
+              <div
+                onClick={() => handleChange('earlyCheckIn', !formData.earlyCheckIn)}
+                className="flex items-center justify-between cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                    formData.earlyCheckIn
+                      ? 'bg-indigo-600 border-indigo-600'
+                      : 'bg-white border-slate-300'
+                  }`}>
+                    {formData.earlyCheckIn && (
+                      <div className="w-3 h-3 bg-white rounded-full"></div>
+                    )}
+                  </div>
+                  <span className="font-bold text-slate-700 flex items-center gap-2">
+                    <Clock size={18} className="text-indigo-600" />
+                    Ранний заезд
+                  </span>
+                </div>
+                <span className={`text-xs font-black uppercase px-3 py-1.5 rounded-lg ${
+                  formData.earlyCheckIn
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-slate-200 text-slate-500'
+                }`}>
+                  {formData.earlyCheckIn ? 'ДА' : 'НЕТ'}
+                </span>
+              </div>
+
+              {formData.earlyCheckIn && (
+                <div className="mt-4 pt-4 border-t border-indigo-200">
+                  <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">Время заезда</p>
+                  <input
+                    type="time"
+                    className="w-full h-12 bg-white rounded-xl px-4 font-bold text-slate-700 border border-indigo-200 focus:border-indigo-400 outline-none transition-all"
+                    value={formData.earlyCheckInTime || '08:00'}
+                    onChange={(e) => handleChange('earlyCheckInTime', e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Late Check-Out */}
+            <div className={`rounded-2xl p-5 border-2 transition-all ${
+              formData.lateCheckOut
+                ? 'bg-indigo-50 border-indigo-300'
+                : 'bg-slate-50 border-transparent'
+            }`}>
+              <div
+                onClick={() => handleChange('lateCheckOut', !formData.lateCheckOut)}
+                className="flex items-center justify-between cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                    formData.lateCheckOut
+                      ? 'bg-indigo-600 border-indigo-600'
+                      : 'bg-white border-slate-300'
+                  }`}>
+                    {formData.lateCheckOut && (
+                      <div className="w-3 h-3 bg-white rounded-full"></div>
+                    )}
+                  </div>
+                  <span className="font-bold text-slate-700 flex items-center gap-2">
+                    <Clock size={18} className="text-indigo-600" />
+                    Поздний выезд
+                  </span>
+                </div>
+                <span className={`text-xs font-black uppercase px-3 py-1.5 rounded-lg ${
+                  formData.lateCheckOut
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-slate-200 text-slate-500'
+                }`}>
+                  {formData.lateCheckOut ? 'ДА' : 'НЕТ'}
+                </span>
+              </div>
+
+              {formData.lateCheckOut && (
+                <div className="mt-4 pt-4 border-t border-indigo-200">
+                  <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">Время выезда</p>
+                  <input
+                    type="time"
+                    className="w-full h-12 bg-white rounded-xl px-4 font-bold text-slate-700 border border-indigo-200 focus:border-indigo-400 outline-none transition-all"
+                    value={formData.lateCheckOutTime || '18:00'}
+                    onChange={(e) => handleChange('lateCheckOutTime', e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </section>
