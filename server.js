@@ -1,3 +1,6 @@
+// Set timezone to Moscow before anything else
+process.env.TZ = 'Europe/Moscow';
+
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -29,6 +32,11 @@ app.use(express.static(path.join(__dirname, 'dist')));
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+});
+
+// Set database timezone to Moscow
+pool.on('connect', (client) => {
+  client.query('SET timezone = "Europe/Moscow"');
 });
 
 // Initialize database table
