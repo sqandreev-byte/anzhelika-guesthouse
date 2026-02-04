@@ -33,6 +33,7 @@ const pool = new Pool({
 // Initialize database table
 async function initDatabase() {
   try {
+    // Create table if not exists
     await pool.query(`
       CREATE TABLE IF NOT EXISTS bookings (
         id VARCHAR(255) PRIMARY KEY,
@@ -54,12 +55,23 @@ async function initDatabase() {
         status VARCHAR(50) DEFAULT 'confirmed',
         comment TEXT,
         contact_channel VARCHAR(50),
-        contact_source TEXT,
-        notification_24h_sent BOOLEAN DEFAULT FALSE,
-        notification_2h_sent BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add missing columns if they don't exist (migration)
+    try {
+      await pool.query(`
+        ALTER TABLE bookings
+        ADD COLUMN IF NOT EXISTS contact_source TEXT,
+        ADD COLUMN IF NOT EXISTS notification_24h_sent BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS notification_2h_sent BOOLEAN DEFAULT FALSE
+      `);
+      console.log('✅ Database migration completed');
+    } catch (migrationError) {
+      console.log('⚠️  Migration skipped (columns might already exist)');
+    }
+
     console.log('✅ Database table initialized');
   } catch (error) {
     console.error('❌ Database initialization error:', error);
