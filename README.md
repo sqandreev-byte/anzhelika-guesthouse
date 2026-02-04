@@ -1,20 +1,124 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 🏡 Анжелика: Управление гостевым домом
 
-# Run and deploy your AI Studio app
+React-приложение для управления бронированиями гостевого дома с календарём, статистикой и AI-интеграцией.
 
-This contains everything you need to run your app locally.
+## ✨ Возможности
+
+- 📅 Интерактивный календарь бронирований
+- 🏠 Управление комнатами
+- 💰 Статистика выручки и занятости
+- 📊 История бронирований
+- 🔄 Статусы: предоплата, заезд, выезд, отмена
+- 💾 Автосохранение в localStorage
+- 🤖 Интеграция с Gemini AI (опционально)
+
+## 🚀 Быстрый старт
+
+### Локально
+
+```bash
+# 1. Установить зависимости
+npm install
+
+# 2. Скопировать .env
+cp .env.example .env.local
+
+# 3. Добавить Gemini API Key (если нужен)
+nano .env.local
+
+# 4. Запустить
+npm run dev
+```
+
+Откроется на http://localhost:3000
+
+### Деплой на Railway
+
+Полная инструкция: [DEPLOY.md](DEPLOY.md)
+
+**Кратко:**
+```bash
+# 1. Установить Railway CLI
+npm i -g @railway/cli
+
+# 2. Логин
+railway login
+
+# 3. Инициализировать проект
+railway init
+
+# 4. Добавить переменные
+railway variables set GEMINI_API_KEY=ваш_ключ
+
+# 5. Деплой
+railway up
+```
+
+## 📁 Структура
+
+```
+anzhelika-guesthouse/
+├── App.tsx              # Главный компонент
+├── views/               # Страницы
+│   ├── Dashboard.tsx    # Главная
+│   ├── Calendar.tsx     # Календарь
+│   ├── RoomsList.tsx    # Комнаты
+│   ├── BookingForm.tsx  # Форма бронирования
+│   └── ...
+├── components/          # Компоненты
+├── types.ts             # TypeScript типы
+├── constants.ts         # Константы и демо-данные
+├── utils.ts             # Утилиты
+└── vite.config.ts       # Конфигурация Vite
+```
+
+## 🛠 Технологии
+
+- **React 19** + TypeScript
+- **Vite 6** - сборщик
+- **Lucide React** - иконки
+- **date-fns** - работа с датами
+- **Gemini AI** - опциональная интеграция
+
+## 📦 Скрипты
+
+```bash
+npm run dev      # Development сервер
+npm run build    # Production build
+npm run preview  # Превью prod-сборки
+```
+
+## 🌐 Деплой
+
+Приложение готово к деплою на:
+- ✅ **Railway** (рекомендуется) - см. [DEPLOY.md](DEPLOY.md)
+- ✅ **Vercel** - `vercel --prod`
+- ✅ **Netlify** - `netlify deploy --prod`
+- ✅ **Docker** - `docker build -t anzhelika .`
+
+## 🔧 Настройки
+
+### Переменные окружения
+
+```env
+GEMINI_API_KEY=your_gemini_api_key  # Опционально
+PORT=3000                            # Для Railway
+```
+
+### Комнаты
+
+Редактировать в `constants.ts`:
+```typescript
+export const ROOMS = [
+  { id: '1', name: 'Стандарт', description: '...', image: '...' },
+  // ...
+];
+```
+
+## 📄 Лицензия
+
+MIT
+
+## 📞 AI Studio
 
 View your app in AI Studio: https://ai.studio/apps/drive/1sBuD7OmpccW2n098zRwghpcX8te12ZG7
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
