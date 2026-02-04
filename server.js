@@ -16,7 +16,7 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7967661979:AAGlUE1
 const bot = TELEGRAM_BOT_TOKEN ? new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true }) : null;
 
 // Admin chat IDs for notifications
-const ADMIN_CHAT_IDS = ['878338264', '1091714465'];
+const ADMIN_CHAT_IDS = ['878338264', '1091714465', '1032465864'];
 
 // Middleware
 app.use(express.json());
