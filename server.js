@@ -14,7 +14,9 @@ const PORT = process.env.PORT || 3000;
 // Telegram Bot
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7967661979:AAGlUE1mJPL_tF0gHbY1wl2-wlYW0O69Ao8';
 const bot = TELEGRAM_BOT_TOKEN ? new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true }) : null;
-let adminChatId = process.env.ADMIN_CHAT_ID || null;
+
+// Admin chat IDs for notifications
+const ADMIN_CHAT_IDS = ['878338264', '1091714465'];
 
 // Middleware
 app.use(express.json());
@@ -227,9 +229,14 @@ app.get('*', (req, res) => {
 if (bot) {
   bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-    adminChatId = chatId;
-    console.log(`✅ Admin chat ID set: ${chatId}`);
-    bot.sendMessage(chatId, '✅ Бот активирован!\n\nТеперь вы будете получать уведомления о заселениях:\n• За 24 часа до заселения\n• За 2 часа до заселения');
+    console.log(`✅ Received /start from chat ID: ${chatId}`);
+
+    const isRegistered = ADMIN_CHAT_IDS.includes(String(chatId));
+    if (isRegistered) {
+      bot.sendMessage(chatId, '✅ Бот активирован!\n\nВы будете получать уведомления о заселениях:\n• За 24 часа до заселения\n• За 2 часа до заселения');
+    } else {
+      bot.sendMessage(chatId, '⚠️ Ваш chat ID не зарегистрирован.\n\nВаш ID: ' + chatId + '\n\nОбратитесь к администратору для добавления.');
+    }
   });
 
   bot.on('polling_error', (error) => {
@@ -246,7 +253,7 @@ const ROOM_NAMES = {
 
 // Check for upcoming check-ins and send notifications
 async function checkUpcomingCheckIns() {
-  if (!bot || !adminChatId) return;
+  if (!bot || ADMIN_CHAT_IDS.length === 0) return;
 
   try {
     const now = new Date();
@@ -280,7 +287,7 @@ async function checkUpcomingCheckIns() {
 
 // Send check-in notification
 async function sendCheckInNotification(booking, timeframe) {
-  if (!bot || !adminChatId) return;
+  if (!bot || ADMIN_CHAT_IDS.length === 0) return;
 
   const roomName = ROOM_NAMES[booking.room_id] || 'Номер ' + booking.room_id;
   const checkInDate = new Date(booking.check_in);
@@ -315,17 +322,20 @@ async function sendCheckInNotification(booking, timeframe) {
 👥 Гости: ${booking.adults} взрослых${booking.kids > 0 ? `, ${booking.kids} детей` : ''}${paymentText}${specialReqText}${booking.comment ? '\n\n💬 Комментарий: ' + booking.comment : ''}
   `.trim();
 
-  try {
-    await bot.sendMessage(adminChatId, message, {
-      reply_markup: {
-        inline_keyboard: [[
-          { text: '📞 Позвонить', url: `tel:${booking.guest_phone}` }
-        ]]
-      }
-    });
-    console.log(`✅ Notification sent for booking ${booking.id} (${timeframe})`);
-  } catch (error) {
-    console.error('Error sending notification:', error);
+  // Send to all admin chat IDs
+  for (const chatId of ADMIN_CHAT_IDS) {
+    try {
+      await bot.sendMessage(chatId, message, {
+        reply_markup: {
+          inline_keyboard: [[
+            { text: '📞 Позвонить', url: `tel:${booking.guest_phone}` }
+          ]]
+        }
+      });
+      console.log(`✅ Notification sent to ${chatId} for booking ${booking.id} (${timeframe})`);
+    } catch (error) {
+      console.error(`Error sending notification to ${chatId}:`, error);
+    }
   }
 }
 
