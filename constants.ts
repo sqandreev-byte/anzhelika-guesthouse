@@ -5,7 +5,7 @@ import { addDays, format } from 'date-fns';
 export const ROOMS: Room[] = [
   { id: '1', name: 'Студия', description: 'Уютный номер с мини-кухней', image: 'https://picsum.photos/400/300?random=1' },
   { id: '2', name: 'Двухкомнатный Море', description: 'Вид на море, просторная гостиная', image: 'https://picsum.photos/400/300?random=2' },
-  { id: '3', name: 'Двухкомнатная Студия', description: 'Тихий номер с видом в сад', image: 'https://picsum.photos/400/300?random=3' },
+  { id: '3', name: 'Двухкомнатный Стандарт', description: 'Тихий номер с видом в сад', image: 'https://picsum.photos/400/300?random=3' },
 ];
 
 // Fix: Use vanilla JS to get start of today as startOfToday is reported missing

@@ -275,7 +275,7 @@ if (bot) {
 const ROOM_NAMES = {
   '1': 'Студия',
   '2': 'Двухкомнатный Море',
-  '3': 'Двухкомнатная Студия'
+  '3': 'Двухкомнатный Стандарт'
 };
 
 // Check for upcoming check-ins and send notifications
