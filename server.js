@@ -303,6 +303,7 @@ async function checkUpcomingCheckIns() {
 
       const hoursUntilCheckIn = (checkInTime - now) / (1000 * 60 * 60);
       console.log(`  📅 Booking ${row.id} (${row.guest_name}): ${hoursUntilCheckIn.toFixed(2)} hours until check-in`);
+      console.log(`     Current time: ${now.toLocaleString('ru-RU')}, Check-in time: ${checkInTime.toLocaleString('ru-RU')}`);
       console.log(`     24h sent: ${row.notification_24h_sent}, 2h sent: ${row.notification_2h_sent}`);
 
       // 24 hour notification
