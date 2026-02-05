@@ -243,10 +243,19 @@ app.get('/api/health', async (req, res) => {
 
 // Telegram webhook endpoint
 app.post('/api/telegram-webhook', (req, res) => {
-  if (bot) {
-    bot.processUpdate(req.body);
-  }
+  // Respond immediately to avoid timeout
   res.sendStatus(200);
+
+  // Process update asynchronously without blocking
+  if (bot) {
+    setImmediate(() => {
+      try {
+        bot.processUpdate(req.body);
+      } catch (error) {
+        console.error('Error processing Telegram update:', error);
+      }
+    });
+  }
 });
 
 // Handle SPA routing - return index.html for all non-API routes
@@ -258,15 +267,19 @@ app.get('*', (req, res) => {
 
 // Telegram Bot Commands
 if (bot) {
-  bot.onText(/\/start/, (msg) => {
+  bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     console.log(`✅ Received /start from chat ID: ${chatId}`);
 
-    const isRegistered = ADMIN_CHAT_IDS.includes(String(chatId));
-    if (isRegistered) {
-      bot.sendMessage(chatId, '✅ Бот активирован!\n\nВы будете получать уведомления о заселениях:\n• За 24 часа до заселения\n• За 2 часа до заселения');
-    } else {
-      bot.sendMessage(chatId, '⚠️ Ваш chat ID не зарегистрирован.\n\nВаш ID: ' + chatId + '\n\nОбратитесь к администратору для добавления.');
+    try {
+      const isRegistered = ADMIN_CHAT_IDS.includes(String(chatId));
+      if (isRegistered) {
+        await bot.sendMessage(chatId, '✅ Бот активирован!\n\nВы будете получать уведомления о заселениях:\n• За 24 часа до заселения\n• За 2 часа до заселения');
+      } else {
+        await bot.sendMessage(chatId, '⚠️ Ваш chat ID не зарегистрирован.\n\nВаш ID: ' + chatId + '\n\nОбратитесь к администратору для добавления.');
+      }
+    } catch (error) {
+      console.error(`Error sending /start message to ${chatId}:`, error.message);
     }
   });
 }
@@ -372,21 +385,28 @@ async function sendCheckInNotification(booking, timeframe) {
 👥 Гости: ${booking.adults} взрослых${booking.kids > 0 ? `, ${booking.kids} детей` : ''}${paymentText}${specialReqText}${booking.comment ? '\n\n💬 Комментарий: ' + booking.comment : ''}
   `.trim();
 
-  // Send to all admin chat IDs
-  for (const chatId of ADMIN_CHAT_IDS) {
+  // Send to all admin chat IDs in parallel with timeout
+  const sendPromises = ADMIN_CHAT_IDS.map(async (chatId) => {
     try {
-      await bot.sendMessage(chatId, message, {
-        reply_markup: {
-          inline_keyboard: [[
-            { text: '👁 Открыть бронь', web_app: { url: `${WEBHOOK_URL}/?booking=${booking.id}` } }
-          ]]
-        }
-      });
+      await Promise.race([
+        bot.sendMessage(chatId, message, {
+          reply_markup: {
+            inline_keyboard: [[
+              { text: '👁 Открыть бронь', web_app: { url: `${WEBHOOK_URL}/?booking=${booking.id}` } }
+            ]]
+          }
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
+      ]);
       console.log(`✅ Notification sent to ${chatId} for booking ${booking.id} (${timeframe})`);
+      return { chatId, success: true };
     } catch (error) {
-      console.error(`Error sending notification to ${chatId}:`, error);
+      console.error(`❌ Error sending notification to ${chatId}:`, error.message);
+      return { chatId, success: false, error: error.message };
     }
-  }
+  });
+
+  await Promise.allSettled(sendPromises);
 }
 
 // Start server
@@ -424,12 +444,12 @@ app.listen(PORT, '0.0.0.0', async () => {
     }
   }
 
-  // Start notification checker (every 5 minutes for faster response)
+  // Start notification checker (every hour)
   if (bot && process.env.DATABASE_URL) {
     console.log('🔔 Starting notification checker...');
-    setInterval(checkUpcomingCheckIns, 5 * 60 * 1000); // Every 5 minutes
+    setInterval(checkUpcomingCheckIns, 60 * 60 * 1000); // Every hour
     // Also check immediately on startup
     setTimeout(checkUpcomingCheckIns, 5000); // After 5 seconds
-    console.log('✅ Notification checker started (checks every 5 minutes)');
+    console.log('✅ Notification checker started (checks every hour)');
   }
 });
