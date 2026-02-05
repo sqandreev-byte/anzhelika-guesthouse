@@ -36,6 +36,11 @@ const RoomOccupancy: React.FC<RoomOccupancyProps> = ({ bookings, onBack, onOpenB
     }) || null;
   };
 
+  // Find booking that checks out on this day
+  const getCheckoutBooking = (day: Date): Booking | null => {
+    return roomBookings.find(b => isSameDay(day, parseLocalDate(b.checkOut))) || null;
+  };
+
   const todayDate = getMoscowToday();
 
   const weekDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
@@ -132,19 +137,28 @@ const RoomOccupancy: React.FC<RoomOccupancyProps> = ({ bookings, onBack, onOpenB
 
           {days.map(day => {
             const booking = getBookingForDay(day);
+            const checkoutBooking = !booking ? getCheckoutBooking(day) : null;
             const isPast = isBefore(day, todayDate) && !isSameDay(day, todayDate);
             const today = isSameDay(day, todayDate);
 
             // Check if this is the first day of a booking (for showing guest name)
             const isBookingStart = booking && isSameDay(day, parseLocalDate(booking.checkIn));
 
+            const getBookingColor = (b: Booking) =>
+              b.status === 'checked_in' ? 'bg-orange-400' :
+              b.status === 'prepaid' ? 'bg-emerald-500' :
+              'bg-indigo-500';
+
             return (
               <div
                 key={day.toISOString()}
-                onClick={() => booking && onOpenBooking(booking)}
-                className={`aspect-square border-b border-r border-slate-50 p-1 flex flex-col items-center justify-center relative transition-colors ${
-                  booking ? 'cursor-pointer active:opacity-80' : ''
-                } ${isPast && !booking ? 'bg-slate-50/50' : ''}`}
+                onClick={() => {
+                  if (booking) onOpenBooking(booking);
+                  else if (checkoutBooking) onOpenBooking(checkoutBooking);
+                }}
+                className={`aspect-square border-b border-r border-slate-50 p-1 flex flex-col items-center justify-center relative overflow-hidden transition-colors ${
+                  booking || checkoutBooking ? 'cursor-pointer active:opacity-80' : ''
+                } ${isPast && !booking && !checkoutBooking ? 'bg-slate-50/50' : ''}`}
               >
                 {/* Day number */}
                 <span className={`text-sm font-bold z-10 ${
@@ -159,13 +173,14 @@ const RoomOccupancy: React.FC<RoomOccupancyProps> = ({ bookings, onBack, onOpenB
                   {format(day, 'd')}
                 </span>
 
-                {/* Booking background */}
+                {/* Full booking background */}
                 {booking && (
-                  <div className={`absolute inset-0.5 rounded-lg ${
-                    booking.status === 'checked_in' ? 'bg-orange-400' :
-                    booking.status === 'prepaid' ? 'bg-emerald-500' :
-                    'bg-indigo-500'
-                  }`} />
+                  <div className={`absolute inset-0.5 rounded-lg ${getBookingColor(booking)}`} />
+                )}
+
+                {/* Half-colored checkout day (left half colored, right half empty) */}
+                {!booking && checkoutBooking && (
+                  <div className={`absolute top-0.5 bottom-0.5 left-0.5 w-1/2 rounded-l-lg ${getBookingColor(checkoutBooking)}`} />
                 )}
 
                 {/* Guest name on booking start */}
