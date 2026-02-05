@@ -272,6 +272,19 @@ if (bot) {
     console.log(`✅ Received /start from chat ID: ${chatId}`);
 
     try {
+      // Set menu button for this specific user
+      await bot.setChatMenuButton({
+        chat_id: chatId,
+        menu_button: {
+          type: 'web_app',
+          text: '🏠 Гостевой дом',
+          web_app: {
+            url: WEBHOOK_URL
+          }
+        }
+      });
+      console.log(`✅ Menu button set for chat ${chatId}`);
+
       const isRegistered = ADMIN_CHAT_IDS.includes(String(chatId));
       if (isRegistered) {
         await bot.sendMessage(chatId, '✅ Бот активирован!\n\nВы будете получать уведомления о заселениях:\n• За 24 часа до заселения\n• За 2 часа до заселения');
