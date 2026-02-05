@@ -12,6 +12,7 @@ import RoomsList from './views/RoomsList';
 import BookingsHistory from './views/BookingsHistory';
 import BookingForm from './views/BookingForm';
 import BookingDetails from './views/BookingDetails';
+import RoomOccupancy from './views/RoomOccupancy';
 // Fix: Add missing Plus icon from lucide-react
 import { Plus } from 'lucide-react';
 
@@ -162,10 +163,17 @@ const App: React.FC = () => {
   const renderView = () => {
     switch (activeTab) {
       case 'home':
-        return <Dashboard 
-                  bookings={bookings} 
-                  onOpenBooking={handleOpenDetails} 
-                  onUpdateStatus={handleUpdateStatus} 
+        return <Dashboard
+                  bookings={bookings}
+                  onOpenBooking={handleOpenDetails}
+                  onUpdateStatus={handleUpdateStatus}
+                  onOpenOccupancy={() => setActiveTab('occupancy')}
+               />;
+      case 'occupancy':
+        return <RoomOccupancy
+                  bookings={bookings}
+                  onBack={() => setActiveTab('home')}
+                  onOpenBooking={handleOpenDetails}
                />;
       case 'calendar':
         return <CalendarView 

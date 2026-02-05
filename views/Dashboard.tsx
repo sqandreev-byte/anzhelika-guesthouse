@@ -10,9 +10,10 @@ interface DashboardProps {
   bookings: Booking[];
   onOpenBooking: (booking: Booking) => void;
   onUpdateStatus: (bookingId: string, status: any) => void;
+  onOpenOccupancy?: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ bookings, onOpenBooking, onUpdateStatus }) => {
+const Dashboard: React.FC<DashboardProps> = ({ bookings, onOpenBooking, onUpdateStatus, onOpenOccupancy }) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -131,12 +132,24 @@ const Dashboard: React.FC<DashboardProps> = ({ bookings, onOpenBooking, onUpdate
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-        {stats.map((s, i) => (
-          <div key={i} className={`${s.bg} rounded-[28px] p-5 border border-white shadow-sm`}>
-            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">{s.label}</p>
-            <p className={`text-4xl font-black ${s.color}`}>{s.value}</p>
-          </div>
-        ))}
+        {stats.map((s, i) => {
+          const isOccupancy = s.label === 'Загрузка';
+          return (
+            <div
+              key={i}
+              onClick={isOccupancy && onOpenOccupancy ? onOpenOccupancy : undefined}
+              className={`${s.bg} rounded-[28px] p-5 border border-white shadow-sm ${
+                isOccupancy ? 'cursor-pointer active:scale-[0.97] transition-transform ring-2 ring-blue-200' : ''
+              }`}
+            >
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                {s.label}
+                {isOccupancy && <span className="ml-1 text-blue-400">→</span>}
+              </p>
+              <p className={`text-4xl font-black ${s.color}`}>{s.value}</p>
+            </div>
+          );
+        })}
       </div>
 
       <section className="mb-10">
