@@ -302,7 +302,8 @@ if (bot) {
       // Reply keyboard (persistent at bottom)
       const replyKeyboard = {
         keyboard: [[
-          { text: '🏠 Гостевой дом', web_app: { url: WEBHOOK_URL } }
+          { text: '🏠 Гостевой дом', web_app: { url: WEBHOOK_URL } },
+          { text: '💾 Бекап' }
         ]],
         resize_keyboard: true,
         persistent: true
@@ -341,6 +342,28 @@ if (bot) {
     } catch (error) {
       console.error(`Error in /backup command for ${chatId}:`, error.message);
       await bot.sendMessage(chatId, '❌ Ошибка при создании бекапа. Проверьте логи.');
+    }
+  });
+
+  // Backup button handler
+  bot.on('message', async (msg) => {
+    if (msg.text === '💾 Бекап') {
+      const chatId = msg.chat.id;
+      console.log(`✅ Received backup button press from chat ID: ${chatId}`);
+
+      try {
+        const isRegistered = ADMIN_CHAT_IDS.includes(String(chatId));
+        if (!isRegistered) {
+          await bot.sendMessage(chatId, '⚠️ У вас нет доступа к этой функции.');
+          return;
+        }
+
+        await bot.sendMessage(chatId, '📦 Создаю бекап базы данных...');
+        await createAndSendBackup();
+      } catch (error) {
+        console.error(`Error in backup button for ${chatId}:`, error.message);
+        await bot.sendMessage(chatId, '❌ Ошибка при создании бекапа. Проверьте логи.');
+      }
     }
   });
 }
