@@ -323,6 +323,26 @@ if (bot) {
       console.error(`Error sending /start message to ${chatId}:`, error.message);
     }
   });
+
+  // Manual backup command
+  bot.onText(/\/backup/, async (msg) => {
+    const chatId = msg.chat.id;
+    console.log(`✅ Received /backup from chat ID: ${chatId}`);
+
+    try {
+      const isRegistered = ADMIN_CHAT_IDS.includes(String(chatId));
+      if (!isRegistered) {
+        await bot.sendMessage(chatId, '⚠️ У вас нет доступа к этой команде.');
+        return;
+      }
+
+      await bot.sendMessage(chatId, '📦 Создаю бекап базы данных...');
+      await createAndSendBackup();
+    } catch (error) {
+      console.error(`Error in /backup command for ${chatId}:`, error.message);
+      await bot.sendMessage(chatId, '❌ Ошибка при создании бекапа. Проверьте логи.');
+    }
+  });
 }
 
 // Room names mapping
