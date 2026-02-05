@@ -6,6 +6,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import pg from 'pg';
 import TelegramBot from 'node-telegram-bot-api';
+import cron from 'node-cron';
+import fs from 'fs';
+import zlib from 'zlib';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
 const { Pool } = pg;
 const __filename = fileURLToPath(import.meta.url);
@@ -445,6 +450,75 @@ async function sendCheckInNotification(booking, timeframe) {
   await Promise.allSettled(sendPromises);
 }
 
+// Create database backup and send to Telegram
+async function createAndSendBackup() {
+  if (!bot || ADMIN_CHAT_IDS.length === 0) {
+    console.log('⚠️  Backup skipped: bot or admin IDs not configured');
+    return;
+  }
+
+  const timestamp = new Date().toISOString().split('T')[0]; // 2026-02-05
+  const backupFile = `/tmp/backup-${timestamp}.sql`;
+  const gzipFile = `${backupFile}.gz`;
+
+  try {
+    console.log('📦 Creating database backup...');
+
+    // Create pg_dump
+    const execAsync = promisify(exec);
+    await execAsync(`pg_dump "${process.env.DATABASE_URL}" > ${backupFile}`);
+
+    // Compress with gzip
+    const readStream = fs.createReadStream(backupFile);
+    const writeStream = fs.createWriteStream(gzipFile);
+    const gzip = zlib.createGzip();
+
+    await new Promise((resolve, reject) => {
+      readStream.pipe(gzip).pipe(writeStream)
+        .on('finish', resolve)
+        .on('error', reject);
+    });
+
+    // Get file stats
+    const stats = fs.statSync(gzipFile);
+    const fileSizeKB = (stats.size / 1024).toFixed(2);
+
+    // Get bookings count
+    const result = await pool.query('SELECT COUNT(*) FROM bookings');
+    const bookingsCount = result.rows[0].count;
+
+    const message = `💾 Бекап базы данных
+📅 ${new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+📦 Размер: ${fileSizeKB} KB
+📋 Бронирований: ${bookingsCount}`.trim();
+
+    // Send to all admins
+    for (const chatId of ADMIN_CHAT_IDS) {
+      try {
+        await bot.sendDocument(chatId, gzipFile, {
+          caption: message
+        });
+        console.log(`✅ Backup sent to ${chatId}`);
+      } catch (error) {
+        console.error(`❌ Error sending backup to ${chatId}:`, error.message);
+      }
+    }
+
+    // Cleanup
+    fs.unlinkSync(backupFile);
+    fs.unlinkSync(gzipFile);
+
+    console.log('✅ Backup completed and sent');
+  } catch (error) {
+    console.error('❌ Backup failed:', error.message);
+    // Cleanup on error
+    try {
+      if (fs.existsSync(backupFile)) fs.unlinkSync(backupFile);
+      if (fs.existsSync(gzipFile)) fs.unlinkSync(gzipFile);
+    } catch { }
+  }
+}
+
 // Start server
 app.listen(PORT, '0.0.0.0', async () => {
   console.log(`✅ Server running on http://0.0.0.0:${PORT}`);
@@ -487,5 +561,14 @@ app.listen(PORT, '0.0.0.0', async () => {
     // Also check immediately on startup
     setTimeout(checkUpcomingCheckIns, 5000); // After 5 seconds
     console.log('✅ Notification checker started (checks every hour)');
+  }
+
+  // Start backup scheduler (every day at 3:00 AM Moscow time)
+  if (bot && process.env.DATABASE_URL) {
+    console.log('💾 Starting backup scheduler...');
+    cron.schedule('0 3 * * *', createAndSendBackup, {
+      timezone: 'Europe/Moscow'
+    });
+    console.log('✅ Backup scheduler started (runs daily at 3:00 AM Moscow time)');
   }
 });
