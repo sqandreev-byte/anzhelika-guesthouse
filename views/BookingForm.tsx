@@ -4,7 +4,8 @@ import { Booking, BookingStatus, ContactChannel, CHANNEL_MAP, STATUS_MAP } from 
 import { ROOMS } from '../constants';
 import { calculateNights, formatPrice } from '../utils';
 import { X, Calendar as CalendarIcon, User, Phone, Banknote, Car, Clock, ChevronDown, Plus, Minus, Calculator, Globe } from 'lucide-react';
-import { format, addDays } from 'date-fns';
+import { format, addDays, differenceInDays } from 'date-fns';
+import { ru } from 'date-fns/locale/ru';
 
 interface BookingFormProps {
   booking?: Booking | null;
@@ -40,6 +41,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
     lateCheckOut: false,
     lateCheckOutSurcharge: 0,
     dailyPrice: 3500,
+    dailyPrice2: 0,
     totalPrice: 3500,
     prepayment: 0,
     status: 'confirmed',
@@ -48,13 +50,38 @@ const BookingForm: React.FC<BookingFormProps> = ({
   });
 
   const nights = calculateNights(formData.checkIn || '', formData.checkOut || '');
-  
+
+  // Split nights by month when booking spans two months
+  const monthSplit = (() => {
+    if (!formData.checkIn || !formData.checkOut || nights <= 0) return null;
+    const start = new Date(formData.checkIn.split('T')[0]);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(formData.checkOut.split('T')[0]);
+    end.setHours(0, 0, 0, 0);
+    if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) return null;
+    // Also skip if checkout is on the 1st (all nights belong to previous month)
+    if (end.getDate() === 1) return null;
+    const firstOfNextMonth = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+    const nightsMonth1 = differenceInDays(firstOfNextMonth, start);
+    const nightsMonth2 = nights - nightsMonth1;
+    if (nightsMonth1 <= 0 || nightsMonth2 <= 0) return null;
+    const month1 = format(start, 'LLLL', { locale: ru });
+    const month2 = format(end, 'LLLL', { locale: ru });
+    return { nightsMonth1, nightsMonth2, month1, month2 };
+  })();
+
   useEffect(() => {
     const earlySurcharge = formData.earlyCheckIn ? (formData.earlyCheckInSurcharge || 0) : 0;
     const lateSurcharge = formData.lateCheckOut ? (formData.lateCheckOutSurcharge || 0) : 0;
-    const total = (formData.dailyPrice || 0) * nights + earlySurcharge + lateSurcharge;
+    let base: number;
+    if (monthSplit && (formData.dailyPrice2 || 0) > 0) {
+      base = (formData.dailyPrice || 0) * monthSplit.nightsMonth1 + (formData.dailyPrice2 || 0) * monthSplit.nightsMonth2;
+    } else {
+      base = (formData.dailyPrice || 0) * nights;
+    }
+    const total = base + earlySurcharge + lateSurcharge;
     setFormData(prev => ({ ...prev, totalPrice: total }));
-  }, [formData.dailyPrice, nights, formData.earlyCheckIn, formData.earlyCheckInSurcharge, formData.lateCheckOut, formData.lateCheckOutSurcharge]);
+  }, [formData.dailyPrice, formData.dailyPrice2, nights, monthSplit?.nightsMonth1, monthSplit?.nightsMonth2, formData.earlyCheckIn, formData.earlyCheckInSurcharge, formData.lateCheckOut, formData.lateCheckOutSurcharge]);
 
   const remaining = (formData.totalPrice || 0) - (formData.prepayment || 0);
 
@@ -538,26 +565,77 @@ const BookingForm: React.FC<BookingFormProps> = ({
           
           <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm w-full">
             <div className="p-5 bg-slate-50/50 space-y-4 border-b border-slate-100">
-              <div className="w-full">
-                <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">ЦЕНА ЗА СУТКИ</p>
-                <div className="relative">
-                  <input 
-                    type="number"
-                    className="w-full h-14 bg-white rounded-2xl px-5 font-black text-2xl border border-slate-200 focus:border-indigo-500 outline-none transition-all shadow-sm text-slate-900"
-                    value={formData.dailyPrice === 0 ? '' : formData.dailyPrice}
-                    onChange={(e) => handleNumberChange('dailyPrice', e.target.value)}
-                    onFocus={handleInputFocus}
-                    placeholder="0"
-                  />
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 font-black text-xl">₽</span>
+              {!monthSplit ? (
+                <div className="w-full">
+                  <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">ЦЕНА ЗА СУТКИ</p>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      className="w-full h-14 bg-white rounded-2xl px-5 font-black text-2xl border border-slate-200 focus:border-indigo-500 outline-none transition-all shadow-sm text-slate-900"
+                      value={formData.dailyPrice === 0 ? '' : formData.dailyPrice}
+                      onChange={(e) => handleNumberChange('dailyPrice', e.target.value)}
+                      onFocus={handleInputFocus}
+                      placeholder="0"
+                    />
+                    <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 font-black text-xl">₽</span>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="w-full space-y-3">
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2 capitalize">
+                      {monthSplit.month1} — {monthSplit.nightsMonth1} {monthSplit.nightsMonth1 === 1 ? 'ночь' : (monthSplit.nightsMonth1 > 1 && monthSplit.nightsMonth1 < 5 ? 'ночи' : 'ночей')}
+                    </p>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        className="w-full h-14 bg-white rounded-2xl px-5 font-black text-2xl border border-slate-200 focus:border-indigo-500 outline-none transition-all shadow-sm text-slate-900"
+                        value={formData.dailyPrice === 0 ? '' : formData.dailyPrice}
+                        onChange={(e) => handleNumberChange('dailyPrice', e.target.value)}
+                        onFocus={handleInputFocus}
+                        placeholder="0"
+                      />
+                      <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 font-black text-xl">₽</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2 capitalize">
+                      {monthSplit.month2} — {monthSplit.nightsMonth2} {monthSplit.nightsMonth2 === 1 ? 'ночь' : (monthSplit.nightsMonth2 > 1 && monthSplit.nightsMonth2 < 5 ? 'ночи' : 'ночей')}
+                    </p>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        className="w-full h-14 bg-white rounded-2xl px-5 font-black text-2xl border border-slate-200 focus:border-indigo-500 outline-none transition-all shadow-sm text-slate-900"
+                        value={formData.dailyPrice2 === 0 ? '' : formData.dailyPrice2}
+                        onChange={(e) => handleNumberChange('dailyPrice2', e.target.value)}
+                        onFocus={handleInputFocus}
+                        placeholder="0"
+                      />
+                      <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 font-black text-xl">₽</span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center gap-2 text-slate-500 text-sm font-bold">
-                  <span>{formData.dailyPrice} ₽</span>
-                  <X size={12} strokeWidth={4} />
-                  <span>{nights} {nights === 1 ? 'ночь' : (nights > 1 && nights < 5 ? 'ночи' : 'ночей')}</span>
+                <div className="flex items-center gap-2 text-slate-500 text-sm font-bold flex-wrap">
+                  {!monthSplit ? (
+                    <>
+                      <span>{formData.dailyPrice} ₽</span>
+                      <X size={12} strokeWidth={4} />
+                      <span>{nights} {nights === 1 ? 'ночь' : (nights > 1 && nights < 5 ? 'ночи' : 'ночей')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{formData.dailyPrice}×{monthSplit.nightsMonth1}</span>
+                      {(formData.dailyPrice2 || 0) > 0 && (
+                        <>
+                          <span>+</span>
+                          <span>{formData.dailyPrice2}×{monthSplit.nightsMonth2}</span>
+                        </>
+                      )}
+                    </>
+                  )}
                   {formData.earlyCheckIn && (formData.earlyCheckInSurcharge || 0) > 0 && (
                     <>
                       <span>+</span>
