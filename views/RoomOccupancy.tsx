@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Booking, STATUS_MAP } from '../types';
 import { ROOMS } from '../constants';
-import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, isToday, isBefore } from 'date-fns';
+import { format, addDays, addMonths, addYears, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, isToday, isBefore } from 'date-fns';
 import { ru } from 'date-fns/locale/ru';
 import { ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 
@@ -239,6 +239,70 @@ const RoomOccupancy: React.FC<RoomOccupancyProps> = ({ bookings, onBack, onOpenB
                   </div>
                 );
               })}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Free dates for the next year */}
+      {(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const yearEnd = addYears(today, 1);
+
+        // Get all bookings for this room sorted by check-in
+        const allRoomBookings = bookings
+          .filter(b => b.roomId === selectedRoomId && b.status !== 'cancelled')
+          .map(b => ({
+            start: new Date(b.checkIn.split('T')[0]),
+            end: new Date(b.checkOut.split('T')[0]),
+          }))
+          .sort((a, b) => a.start.getTime() - b.start.getTime());
+
+        // Build free intervals
+        const freeIntervals: { from: Date; to: Date }[] = [];
+        let cursor = new Date(today);
+
+        for (const booking of allRoomBookings) {
+          if (booking.end <= cursor) continue; // booking already passed cursor
+          if (booking.start > yearEnd) break;  // beyond our range
+
+          if (booking.start > cursor) {
+            // Free gap before this booking
+            freeIntervals.push({ from: new Date(cursor), to: new Date(booking.start) });
+          }
+          // Move cursor to end of this booking (or keep if already further)
+          if (booking.end > cursor) {
+            cursor = new Date(booking.end);
+          }
+        }
+
+        // Remaining time until year end
+        if (cursor < yearEnd) {
+          freeIntervals.push({ from: new Date(cursor), to: yearEnd });
+        }
+
+        if (freeIntervals.length === 0) return null;
+
+        return (
+          <div className="mt-6">
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-3 px-1">
+              Свободные даты
+            </p>
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+              {freeIntervals.map((interval, i) => (
+                <div
+                  key={i}
+                  className={`px-5 py-3.5 flex items-center gap-3 ${
+                    i < freeIntervals.length - 1 ? 'border-b border-slate-100' : ''
+                  }`}
+                >
+                  <div className="w-3 h-3 rounded-full bg-emerald-400 shrink-0" />
+                  <span className="text-sm font-bold text-slate-700">
+                    С {format(interval.from, 'd MMMM', { locale: ru })} по {format(addDays(interval.to, -1), 'd MMMM', { locale: ru })}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         );
