@@ -37,9 +37,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, onOpenBooking, on
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white">
       <header className="p-4 md:p-6 lg:p-8 border-b border-slate-100">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-1">
           <h2 className="text-xl md:text-2xl font-bold text-slate-900">Календарь занятости</h2>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <button onClick={prevPeriod} className="p-2 hover:bg-slate-50 rounded-full border border-slate-100">
               <ChevronLeft size={20} className="text-slate-600" />
             </button>
@@ -48,6 +48,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, onOpenBooking, on
             </button>
           </div>
         </div>
+        <p className="text-sm text-slate-500 font-medium mb-4 capitalize">
+          {(() => {
+            const endDate = addDays(startDate, 13);
+            const startMonth = format(startDate, 'LLLL yyyy', { locale: ru });
+            const endMonth = format(endDate, 'LLLL yyyy', { locale: ru });
+            return startMonth === endMonth ? startMonth : `${startMonth} — ${endMonth}`;
+          })()}
+        </p>
 
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
           <button 
