@@ -2,9 +2,9 @@
 import React from 'react';
 import { Booking, Room, STATUS_MAP } from '../types';
 import { ROOMS } from '../constants';
-import { formatDate, formatPrice } from '../utils';
+import { formatDate, formatPrice, getMoscowToday, parseLocalDate } from '../utils';
 import { Phone, User, Info, CheckCircle2, LogOut } from 'lucide-react';
-import { isToday, isAfter } from 'date-fns';
+import { isSameDay, isAfter } from 'date-fns';
 
 interface DashboardProps {
   bookings: Booking[];
@@ -14,18 +14,17 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ bookings, onOpenBooking, onUpdateStatus, onOpenOccupancy }) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = getMoscowToday();
 
   const sortedBookings = [...bookings]
     .filter(b => b.status !== 'cancelled' && b.status !== 'checked_out')
     .sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime());
 
-  const arrivalsToday = sortedBookings.filter(b => isToday(new Date(b.checkIn)));
-  const departuresToday = bookings.filter(b => isToday(new Date(b.checkOut)) && b.status === 'checked_in');
+  const arrivalsToday = sortedBookings.filter(b => isSameDay(parseLocalDate(b.checkIn), today));
+  const departuresToday = bookings.filter(b => isSameDay(parseLocalDate(b.checkOut), today) && b.status === 'checked_in');
   const upcoming = sortedBookings.filter(b => {
-    const checkIn = new Date(b.checkIn);
-    return !isToday(checkIn) && isAfter(checkIn, today) && b.status !== 'checked_in';
+    const checkIn = parseLocalDate(b.checkIn);
+    return !isSameDay(checkIn, today) && isAfter(checkIn, today) && b.status !== 'checked_in';
   }).slice(0, 5);
 
   // Calculate additional stats

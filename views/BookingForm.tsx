@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Booking, BookingStatus, ContactChannel, CHANNEL_MAP, STATUS_MAP } from '../types';
 import { ROOMS } from '../constants';
-import { calculateNights, formatPrice } from '../utils';
+import { calculateNights, formatPrice, getMoscowToday } from '../utils';
 import { X, Calendar as CalendarIcon, User, Phone, Banknote, Car, Clock, ChevronDown, Plus, Minus, Calculator, Globe } from 'lucide-react';
 import { format, addDays, differenceInDays } from 'date-fns';
 import { ru } from 'date-fns/locale/ru';
@@ -31,8 +31,8 @@ const BookingForm: React.FC<BookingFormProps> = ({
     guestPhone: '+7 ',
     contactChannel: 'whatsapp',
     contactSource: '',
-    checkIn: initialDate ? format(initialDate, "yyyy-MM-dd'T'14:00:00") : format(new Date(), "yyyy-MM-dd'T'14:00:00"),
-    checkOut: initialDate ? format(addDays(initialDate, 1), "yyyy-MM-dd'T'12:00:00") : format(addDays(new Date(), 1), "yyyy-MM-dd'T'12:00:00"),
+    checkIn: initialDate ? format(initialDate, "yyyy-MM-dd'T'14:00:00") : format(getMoscowToday(), "yyyy-MM-dd'T'14:00:00"),
+    checkOut: initialDate ? format(addDays(initialDate, 1), "yyyy-MM-dd'T'12:00:00") : format(addDays(getMoscowToday(), 1), "yyyy-MM-dd'T'12:00:00"),
     adults: 2,
     kids: 0,
     parking: false,

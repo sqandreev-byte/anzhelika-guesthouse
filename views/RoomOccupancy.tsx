@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import { Booking, STATUS_MAP } from '../types';
 import { ROOMS } from '../constants';
-import { format, addDays, addMonths, addYears, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, isToday, isBefore } from 'date-fns';
+import { format, addDays, addMonths, addYears, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, isBefore } from 'date-fns';
 import { ru } from 'date-fns/locale/ru';
 import { ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
+import { getMoscowToday, parseLocalDate } from '../utils';
 
 interface RoomOccupancyProps {
   bookings: Booking[];
@@ -14,7 +15,7 @@ interface RoomOccupancyProps {
 
 const RoomOccupancy: React.FC<RoomOccupancyProps> = ({ bookings, onBack, onOpenBooking }) => {
   const [selectedRoomId, setSelectedRoomId] = useState(ROOMS[0].id);
-  const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
+  const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(getMoscowToday()));
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -29,17 +30,13 @@ const RoomOccupancy: React.FC<RoomOccupancyProps> = ({ bookings, onBack, onOpenB
 
   const getBookingForDay = (day: Date): Booking | null => {
     return roomBookings.find(b => {
-      const start = new Date(b.checkIn.split('T')[0]);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(b.checkOut.split('T')[0]);
-      end.setHours(0, 0, 0, 0);
-      // Day is occupied from check-in date up to (but not including) check-out date
+      const start = parseLocalDate(b.checkIn);
+      const end = parseLocalDate(b.checkOut);
       return day >= start && day < end;
     }) || null;
   };
 
-  const todayDate = new Date();
-  todayDate.setHours(0, 0, 0, 0);
+  const todayDate = getMoscowToday();
 
   const weekDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
 
@@ -136,10 +133,10 @@ const RoomOccupancy: React.FC<RoomOccupancyProps> = ({ bookings, onBack, onOpenB
           {days.map(day => {
             const booking = getBookingForDay(day);
             const isPast = isBefore(day, todayDate) && !isSameDay(day, todayDate);
-            const today = isToday(day);
+            const today = isSameDay(day, todayDate);
 
             // Check if this is the first day of a booking (for showing guest name)
-            const isBookingStart = booking && isSameDay(day, new Date(booking.checkIn.split('T')[0]));
+            const isBookingStart = booking && isSameDay(day, parseLocalDate(booking.checkIn));
 
             return (
               <div
@@ -247,15 +244,7 @@ const RoomOccupancy: React.FC<RoomOccupancyProps> = ({ bookings, onBack, onOpenB
       {/* Free dates for the next year */}
       {(() => {
         // Parse date string as local date (avoid UTC timezone shift)
-        const parseLocalDate = (dateStr: string) => {
-          const parts = dateStr.split('T')[0].split('-');
-          const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-          d.setHours(0, 0, 0, 0);
-          return d;
-        };
-
-        const now = new Date();
-        now.setHours(0, 0, 0, 0);
+        const now = getMoscowToday();
         const yearEnd = addYears(now, 1);
 
         // Get all bookings for this room sorted by check-in

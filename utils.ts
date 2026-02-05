@@ -3,7 +3,24 @@ import { differenceInDays, format, areIntervalsOverlapping } from 'date-fns';
 import { ru } from 'date-fns/locale/ru';
 import { Booking } from './types';
 
-// Fix: Avoid using startOfDay from date-fns as it's reported missing in this environment
+// Get current date/time in Moscow timezone (UTC+3), independent of user's browser timezone
+export const getMoscowToday = (): Date => {
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Moscow',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const parts = fmt.format(new Date()).split('-');
+  return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 0, 0, 0, 0);
+};
+
+// Parse date string (YYYY-MM-DD or ISO) to local Date at midnight
+export const parseLocalDate = (dateStr: string): Date => {
+  const p = dateStr.split('T')[0].split('-');
+  return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]), 0, 0, 0, 0);
+};
+
 export const calculateNights = (checkIn: string, checkOut: string): number => {
   if (!checkIn || !checkOut) return 0;
   // Используем только дату (YYYY-MM-DD), чтобы разница во времени не влияла на количество полных суток

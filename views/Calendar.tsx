@@ -2,11 +2,10 @@
 import React, { useState } from 'react';
 import { Booking, Room, STATUS_MAP } from '../types';
 import { ROOMS } from '../constants';
-// Fix: Remove missing startOfToday, parseISO, subDays
 import { format, addDays, eachDayOfInterval, isSameDay } from 'date-fns';
-// Fix: Use specific path for ru locale
 import { ru } from 'date-fns/locale/ru';
 import { ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { getMoscowToday } from '../utils';
 
 interface CalendarViewProps {
   bookings: Booking[];
@@ -15,12 +14,7 @@ interface CalendarViewProps {
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({ bookings, onOpenBooking, onAddBooking }) => {
-  // Fix: Use vanilla JS for start of today
-  const [startDate, setStartDate] = useState(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
-  });
+  const [startDate, setStartDate] = useState(() => getMoscowToday());
   const [filterRoomId, setFilterRoomId] = useState<string | null>(null);
 
   const days = eachDayOfInterval({
@@ -87,7 +81,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, onOpenBooking, on
             {days.map(day => (
               <div key={day.toISOString()} className="p-2 md:p-3 text-center flex flex-col items-center justify-center border-l border-slate-50">
                 <span className="text-[10px] md:text-xs text-slate-400 uppercase font-bold">{format(day, 'EE', { locale: ru })}</span>
-                <span className={`text-sm md:text-base font-bold ${isSameDay(day, new Date()) ? 'text-indigo-600' : 'text-slate-700'}`}>
+                <span className={`text-sm md:text-base font-bold ${isSameDay(day, getMoscowToday()) ? 'text-indigo-600' : 'text-slate-700'}`}>
                   {format(day, 'd')}
                 </span>
               </div>
