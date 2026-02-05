@@ -32,6 +32,7 @@ export interface Booking {
   earlyCheckInSurcharge?: number;
   lateCheckOut: boolean;
   lateCheckOutTime?: string;
+  lateCheckOutSurcharge?: number;
   dailyPrice: number;
   totalPrice: number;
   prepayment: number;

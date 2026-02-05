@@ -38,6 +38,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
     earlyCheckIn: false,
     earlyCheckInSurcharge: 0,
     lateCheckOut: false,
+    lateCheckOutSurcharge: 0,
     dailyPrice: 3500,
     totalPrice: 3500,
     prepayment: 0,
@@ -49,10 +50,11 @@ const BookingForm: React.FC<BookingFormProps> = ({
   const nights = calculateNights(formData.checkIn || '', formData.checkOut || '');
   
   useEffect(() => {
-    const surcharge = formData.earlyCheckIn ? (formData.earlyCheckInSurcharge || 0) : 0;
-    const total = (formData.dailyPrice || 0) * nights + surcharge;
+    const earlySurcharge = formData.earlyCheckIn ? (formData.earlyCheckInSurcharge || 0) : 0;
+    const lateSurcharge = formData.lateCheckOut ? (formData.lateCheckOutSurcharge || 0) : 0;
+    const total = (formData.dailyPrice || 0) * nights + earlySurcharge + lateSurcharge;
     setFormData(prev => ({ ...prev, totalPrice: total }));
-  }, [formData.dailyPrice, nights, formData.earlyCheckIn, formData.earlyCheckInSurcharge]);
+  }, [formData.dailyPrice, nights, formData.earlyCheckIn, formData.earlyCheckInSurcharge, formData.lateCheckOut, formData.lateCheckOutSurcharge]);
 
   const remaining = (formData.totalPrice || 0) - (formData.prepayment || 0);
 
@@ -495,15 +497,32 @@ const BookingForm: React.FC<BookingFormProps> = ({
               </div>
 
               {formData.lateCheckOut && (
-                <div className="mt-4 pt-4 border-t border-indigo-200">
-                  <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">Время выезда</p>
-                  <input
-                    type="time"
-                    className="w-full h-12 bg-white rounded-xl px-4 font-bold text-slate-700 border border-indigo-200 focus:border-indigo-400 outline-none transition-all"
-                    value={formData.lateCheckOutTime || '18:00'}
-                    onChange={(e) => handleChange('lateCheckOutTime', e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                <div className="mt-4 pt-4 border-t border-indigo-200 space-y-4">
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">Время выезда</p>
+                    <input
+                      type="time"
+                      className="w-full h-12 bg-white rounded-xl px-4 font-bold text-slate-700 border border-indigo-200 focus:border-indigo-400 outline-none transition-all"
+                      value={formData.lateCheckOutTime || '18:00'}
+                      onChange={(e) => handleChange('lateCheckOutTime', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">Надбавка за поздний выезд</p>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        className="w-full h-12 bg-white rounded-xl px-4 font-black text-lg text-slate-700 border border-indigo-200 focus:border-indigo-400 outline-none transition-all"
+                        value={formData.lateCheckOutSurcharge === 0 ? '' : formData.lateCheckOutSurcharge}
+                        onChange={(e) => handleNumberChange('lateCheckOutSurcharge', e.target.value)}
+                        onFocus={handleInputFocus}
+                        onClick={(e) => e.stopPropagation()}
+                        placeholder="0"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-black">₽</span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -543,6 +562,12 @@ const BookingForm: React.FC<BookingFormProps> = ({
                     <>
                       <span>+</span>
                       <span>{formData.earlyCheckInSurcharge} ₽ заезд</span>
+                    </>
+                  )}
+                  {formData.lateCheckOut && (formData.lateCheckOutSurcharge || 0) > 0 && (
+                    <>
+                      <span>+</span>
+                      <span>{formData.lateCheckOutSurcharge} ₽ выезд</span>
                     </>
                   )}
                 </div>
