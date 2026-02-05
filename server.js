@@ -286,8 +286,31 @@ if (bot) {
       console.log(`✅ Menu button set for chat ${chatId}`);
 
       const isRegistered = ADMIN_CHAT_IDS.includes(String(chatId));
+
+      // Inline keyboard with web app button (in message)
+      const inlineKeyboard = {
+        inline_keyboard: [[
+          { text: '🏠 Открыть Гостевой дом', web_app: { url: WEBHOOK_URL } }
+        ]]
+      };
+
+      // Reply keyboard (persistent at bottom)
+      const replyKeyboard = {
+        keyboard: [[
+          { text: '🏠 Гостевой дом', web_app: { url: WEBHOOK_URL } }
+        ]],
+        resize_keyboard: true,
+        persistent: true
+      };
+
       if (isRegistered) {
-        await bot.sendMessage(chatId, '✅ Бот активирован!\n\nВы будете получать уведомления о заселениях:\n• За 24 часа до заселения\n• За 2 часа до заселения');
+        await bot.sendMessage(chatId, '✅ Бот активирован!\n\nВы будете получать уведомления о заселениях:\n• За 24 часа до заселения\n• За 2 часа до заселения', {
+          reply_markup: inlineKeyboard
+        });
+        // Set persistent keyboard
+        await bot.sendMessage(chatId, '👇 Используйте кнопку внизу для быстрого доступа', {
+          reply_markup: replyKeyboard
+        });
       } else {
         await bot.sendMessage(chatId, '⚠️ Ваш chat ID не зарегистрирован.\n\nВаш ID: ' + chatId + '\n\nОбратитесь к администратору для добавления.');
       }
