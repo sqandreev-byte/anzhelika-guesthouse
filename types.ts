@@ -29,6 +29,7 @@ export interface Booking {
   parking: boolean;
   earlyCheckIn: boolean;
   earlyCheckInTime?: string;
+  earlyCheckInSurcharge?: number;
   lateCheckOut: boolean;
   lateCheckOutTime?: string;
   dailyPrice: number;

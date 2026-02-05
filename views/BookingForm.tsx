@@ -36,6 +36,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
     kids: 0,
     parking: false,
     earlyCheckIn: false,
+    earlyCheckInSurcharge: 0,
     lateCheckOut: false,
     dailyPrice: 3500,
     totalPrice: 3500,
@@ -48,9 +49,10 @@ const BookingForm: React.FC<BookingFormProps> = ({
   const nights = calculateNights(formData.checkIn || '', formData.checkOut || '');
   
   useEffect(() => {
-    const total = (formData.dailyPrice || 0) * nights;
+    const surcharge = formData.earlyCheckIn ? (formData.earlyCheckInSurcharge || 0) : 0;
+    const total = (formData.dailyPrice || 0) * nights + surcharge;
     setFormData(prev => ({ ...prev, totalPrice: total }));
-  }, [formData.dailyPrice, nights]);
+  }, [formData.dailyPrice, nights, formData.earlyCheckIn, formData.earlyCheckInSurcharge]);
 
   const remaining = (formData.totalPrice || 0) - (formData.prepayment || 0);
 
@@ -428,15 +430,32 @@ const BookingForm: React.FC<BookingFormProps> = ({
               </div>
 
               {formData.earlyCheckIn && (
-                <div className="mt-4 pt-4 border-t border-indigo-200">
-                  <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">Время заезда</p>
-                  <input
-                    type="time"
-                    className="w-full h-12 bg-white rounded-xl px-4 font-bold text-slate-700 border border-indigo-200 focus:border-indigo-400 outline-none transition-all"
-                    value={formData.earlyCheckInTime || '08:00'}
-                    onChange={(e) => handleChange('earlyCheckInTime', e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                <div className="mt-4 pt-4 border-t border-indigo-200 space-y-4">
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">Время заезда</p>
+                    <input
+                      type="time"
+                      className="w-full h-12 bg-white rounded-xl px-4 font-bold text-slate-700 border border-indigo-200 focus:border-indigo-400 outline-none transition-all"
+                      value={formData.earlyCheckInTime || '08:00'}
+                      onChange={(e) => handleChange('earlyCheckInTime', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">Надбавка за ранний заезд</p>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        className="w-full h-12 bg-white rounded-xl px-4 font-black text-lg text-slate-700 border border-indigo-200 focus:border-indigo-400 outline-none transition-all"
+                        value={formData.earlyCheckInSurcharge === 0 ? '' : formData.earlyCheckInSurcharge}
+                        onChange={(e) => handleNumberChange('earlyCheckInSurcharge', e.target.value)}
+                        onFocus={handleInputFocus}
+                        onClick={(e) => e.stopPropagation()}
+                        placeholder="0"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-black">₽</span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -520,6 +539,12 @@ const BookingForm: React.FC<BookingFormProps> = ({
                   <span>{formData.dailyPrice} ₽</span>
                   <X size={12} strokeWidth={4} />
                   <span>{nights} {nights === 1 ? 'ночь' : (nights > 1 && nights < 5 ? 'ночи' : 'ночей')}</span>
+                  {formData.earlyCheckIn && (formData.earlyCheckInSurcharge || 0) > 0 && (
+                    <>
+                      <span>+</span>
+                      <span>{formData.earlyCheckInSurcharge} ₽ заезд</span>
+                    </>
+                  )}
                 </div>
                 <div className="h-px flex-1 mx-4 bg-slate-200" />
                 <div className="bg-indigo-100 text-indigo-600 p-2.5 rounded-xl">
