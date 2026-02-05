@@ -246,39 +246,44 @@ const RoomOccupancy: React.FC<RoomOccupancyProps> = ({ bookings, onBack, onOpenB
 
       {/* Free dates for the next year */}
       {(() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const yearEnd = addYears(today, 1);
+        // Parse date string as local date (avoid UTC timezone shift)
+        const parseLocalDate = (dateStr: string) => {
+          const parts = dateStr.split('T')[0].split('-');
+          const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+          d.setHours(0, 0, 0, 0);
+          return d;
+        };
+
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const yearEnd = addYears(now, 1);
 
         // Get all bookings for this room sorted by check-in
         const allRoomBookings = bookings
           .filter(b => b.roomId === selectedRoomId && b.status !== 'cancelled')
           .map(b => ({
-            start: new Date(b.checkIn.split('T')[0]),
-            end: new Date(b.checkOut.split('T')[0]),
+            start: parseLocalDate(b.checkIn),
+            end: parseLocalDate(b.checkOut),
           }))
           .sort((a, b) => a.start.getTime() - b.start.getTime());
 
         // Build free intervals
         const freeIntervals: { from: Date; to: Date }[] = [];
-        let cursor = new Date(today);
+        let cursor = new Date(now);
 
         for (const booking of allRoomBookings) {
-          if (booking.end <= cursor) continue; // booking already passed cursor
-          if (booking.start > yearEnd) break;  // beyond our range
+          if (booking.end.getTime() <= cursor.getTime()) continue;
+          if (booking.start.getTime() >= yearEnd.getTime()) break;
 
-          if (booking.start > cursor) {
-            // Free gap before this booking
+          if (booking.start.getTime() > cursor.getTime()) {
             freeIntervals.push({ from: new Date(cursor), to: new Date(booking.start) });
           }
-          // Move cursor to end of this booking (or keep if already further)
-          if (booking.end > cursor) {
+          if (booking.end.getTime() > cursor.getTime()) {
             cursor = new Date(booking.end);
           }
         }
 
-        // Remaining time until year end
-        if (cursor < yearEnd) {
+        if (cursor.getTime() < yearEnd.getTime()) {
           freeIntervals.push({ from: new Date(cursor), to: yearEnd });
         }
 
@@ -299,7 +304,7 @@ const RoomOccupancy: React.FC<RoomOccupancyProps> = ({ bookings, onBack, onOpenB
                 >
                   <div className="w-3 h-3 rounded-full bg-emerald-400 shrink-0" />
                   <span className="text-sm font-bold text-slate-700">
-                    С {format(interval.from, 'd MMMM', { locale: ru })} по {format(addDays(interval.to, -1), 'd MMMM', { locale: ru })}
+                    С {format(interval.from, 'd MMMM yyyy', { locale: ru })} по {format(addDays(interval.to, -1), 'd MMMM yyyy', { locale: ru })}
                   </span>
                 </div>
               ))}
