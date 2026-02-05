@@ -484,9 +484,78 @@ async function createAndSendBackup() {
   try {
     console.log('📦 Creating database backup...');
 
-    // Create pg_dump
-    const execAsync = promisify(exec);
-    await execAsync(`pg_dump "${process.env.DATABASE_URL}" > ${backupFile}`);
+    // Create SQL dump using pg library
+    const result = await pool.query('SELECT * FROM bookings ORDER BY created_at ASC');
+    const bookings = result.rows;
+
+    // Generate SQL dump
+    let sqlDump = `-- Database backup created at ${new Date().toISOString()}\n`;
+    sqlDump += `-- Bookings count: ${bookings.length}\n\n`;
+    sqlDump += `-- Table structure for bookings\n`;
+    sqlDump += `CREATE TABLE IF NOT EXISTS bookings (\n`;
+    sqlDump += `  id VARCHAR(255) PRIMARY KEY,\n`;
+    sqlDump += `  room_id VARCHAR(255) NOT NULL,\n`;
+    sqlDump += `  guest_name VARCHAR(255) NOT NULL,\n`;
+    sqlDump += `  guest_phone VARCHAR(50) NOT NULL,\n`;
+    sqlDump += `  check_in TIMESTAMP NOT NULL,\n`;
+    sqlDump += `  check_out TIMESTAMP NOT NULL,\n`;
+    sqlDump += `  adults INTEGER NOT NULL,\n`;
+    sqlDump += `  kids INTEGER NOT NULL DEFAULT 0,\n`;
+    sqlDump += `  parking BOOLEAN DEFAULT FALSE,\n`;
+    sqlDump += `  early_check_in BOOLEAN DEFAULT FALSE,\n`;
+    sqlDump += `  early_check_in_time VARCHAR(10),\n`;
+    sqlDump += `  late_check_out BOOLEAN DEFAULT FALSE,\n`;
+    sqlDump += `  late_check_out_time VARCHAR(10),\n`;
+    sqlDump += `  daily_price INTEGER NOT NULL,\n`;
+    sqlDump += `  total_price INTEGER NOT NULL,\n`;
+    sqlDump += `  prepayment INTEGER DEFAULT 0,\n`;
+    sqlDump += `  status VARCHAR(50) DEFAULT 'confirmed',\n`;
+    sqlDump += `  comment TEXT,\n`;
+    sqlDump += `  contact_channel VARCHAR(50),\n`;
+    sqlDump += `  contact_source TEXT,\n`;
+    sqlDump += `  notification_24h_sent BOOLEAN DEFAULT FALSE,\n`;
+    sqlDump += `  notification_2h_sent BOOLEAN DEFAULT FALSE,\n`;
+    sqlDump += `  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n`;
+    sqlDump += `);\n\n`;
+
+    // Add data
+    if (bookings.length > 0) {
+      sqlDump += `-- Data for bookings\n`;
+      sqlDump += `DELETE FROM bookings; -- Clear existing data\n`;
+
+      for (const booking of bookings) {
+        const values = [
+          `'${booking.id.replace(/'/g, "''")}'`,
+          `'${booking.room_id}'`,
+          `'${booking.guest_name.replace(/'/g, "''")}'`,
+          `'${booking.guest_phone}'`,
+          `'${booking.check_in.toISOString()}'`,
+          `'${booking.check_out.toISOString()}'`,
+          booking.adults,
+          booking.kids || 0,
+          booking.parking || false,
+          booking.early_check_in || false,
+          booking.early_check_in_time ? `'${booking.early_check_in_time}'` : 'NULL',
+          booking.late_check_out || false,
+          booking.late_check_out_time ? `'${booking.late_check_out_time}'` : 'NULL',
+          booking.daily_price,
+          booking.total_price,
+          booking.prepayment || 0,
+          `'${booking.status || 'confirmed'}'`,
+          booking.comment ? `'${booking.comment.replace(/'/g, "''")}'` : 'NULL',
+          booking.contact_channel ? `'${booking.contact_channel}'` : 'NULL',
+          booking.contact_source ? `'${booking.contact_source.replace(/'/g, "''")}'` : 'NULL',
+          booking.notification_24h_sent || false,
+          booking.notification_2h_sent || false,
+          booking.created_at ? `'${booking.created_at.toISOString()}'` : 'CURRENT_TIMESTAMP'
+        ].join(', ');
+
+        sqlDump += `INSERT INTO bookings VALUES (${values});\n`;
+      }
+    }
+
+    // Write to file
+    fs.writeFileSync(backupFile, sqlDump, 'utf8');
 
     // Compress with gzip
     const readStream = fs.createReadStream(backupFile);
@@ -503,14 +572,10 @@ async function createAndSendBackup() {
     const stats = fs.statSync(gzipFile);
     const fileSizeKB = (stats.size / 1024).toFixed(2);
 
-    // Get bookings count
-    const result = await pool.query('SELECT COUNT(*) FROM bookings');
-    const bookingsCount = result.rows[0].count;
-
     const message = `💾 Бекап базы данных
 📅 ${new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
 📦 Размер: ${fileSizeKB} KB
-📋 Бронирований: ${bookingsCount}`.trim();
+📋 Бронирований: ${bookings.length}`.trim();
 
     // Send to all admins
     for (const chatId of ADMIN_CHAT_IDS) {
