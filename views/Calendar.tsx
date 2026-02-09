@@ -5,7 +5,7 @@ import { ROOMS } from '../constants';
 import { format, addDays, eachDayOfInterval, isSameDay } from 'date-fns';
 import { ru } from 'date-fns/locale/ru';
 import { ChevronLeft, ChevronRight, Filter } from 'lucide-react';
-import { getMoscowToday } from '../utils';
+import { getMoscowToday, parseLocalDate } from '../utils';
 
 interface CalendarViewProps {
   bookings: Booking[];
@@ -96,17 +96,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({ bookings, onOpenBooking, on
                 </div>
                 {days.map(day => {
                   const booking = bookings.find(b => {
-                    // Fix: Use new Date() instead of parseISO
-                    const start = new Date(b.checkIn);
-                    const end = new Date(b.checkOut);
-                    return b.roomId === room.id && 
+                    const start = parseLocalDate(b.checkIn);
+                    const end = parseLocalDate(b.checkOut);
+                    return b.roomId === room.id &&
                            b.status !== 'cancelled' &&
                            (isSameDay(day, start) || isSameDay(day, end) || (day >= start && day <= end));
                   });
 
-                  // Fix: Use new Date() instead of parseISO
-                  const isStart = booking && isSameDay(day, new Date(booking.checkIn));
-                  const isEnd = booking && isSameDay(day, new Date(booking.checkOut));
+                  const isStart = booking && isSameDay(day, parseLocalDate(booking.checkIn));
+                  const isEnd = booking && isSameDay(day, parseLocalDate(booking.checkOut));
 
                   return (
                     <div 

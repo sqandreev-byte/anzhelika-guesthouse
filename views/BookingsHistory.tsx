@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Booking, STATUS_MAP } from '../types';
 import { ROOMS } from '../constants';
 import { Search, ChevronRight } from 'lucide-react';
-import { formatDate, formatPrice } from '../utils';
+import { formatDate, formatPrice, parseLocalDate } from '../utils';
 
 interface BookingsHistoryProps {
   bookings: Booking[];
@@ -19,7 +19,7 @@ const BookingsHistory: React.FC<BookingsHistoryProps> = ({ bookings, onOpenBooki
                           b.guestPhone.includes(search);
     const matchesStatus = filterStatus === 'all' || b.status === filterStatus;
     return matchesSearch && matchesStatus;
-  }).sort((a, b) => new Date(b.checkIn).getTime() - new Date(a.checkIn).getTime());
+  }).sort((a, b) => parseLocalDate(b.checkIn).getTime() - parseLocalDate(a.checkIn).getTime());
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white">

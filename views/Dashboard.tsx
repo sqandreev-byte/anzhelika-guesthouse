@@ -18,7 +18,7 @@ const Dashboard: React.FC<DashboardProps> = ({ bookings, onOpenBooking, onUpdate
 
   const sortedBookings = [...bookings]
     .filter(b => b.status !== 'cancelled' && b.status !== 'checked_out')
-    .sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime());
+    .sort((a, b) => parseLocalDate(a.checkIn).getTime() - parseLocalDate(b.checkIn).getTime());
 
   const arrivalsToday = sortedBookings.filter(b => isSameDay(parseLocalDate(b.checkIn), today));
   const departuresToday = bookings.filter(b => isSameDay(parseLocalDate(b.checkOut), today) && b.status === 'checked_in');

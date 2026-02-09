@@ -218,10 +218,10 @@ const RoomOccupancy: React.FC<RoomOccupancyProps> = ({ bookings, onBack, onOpenB
       {/* Bookings list for this month */}
       {(() => {
         const monthBookings = roomBookings.filter(b => {
-          const start = new Date(b.checkIn.split('T')[0]);
-          const end = new Date(b.checkOut.split('T')[0]);
+          const start = parseLocalDate(b.checkIn);
+          const end = parseLocalDate(b.checkOut);
           return start <= monthEnd && end >= monthStart;
-        }).sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime());
+        }).sort((a, b) => parseLocalDate(a.checkIn).getTime() - parseLocalDate(b.checkIn).getTime());
 
         if (monthBookings.length === 0) return null;
 
@@ -242,7 +242,7 @@ const RoomOccupancy: React.FC<RoomOccupancyProps> = ({ bookings, onBack, onOpenB
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-slate-800 text-base truncate">{b.guestName}</p>
                       <p className="text-xs text-slate-400 font-medium">
-                        {format(new Date(b.checkIn), 'd MMM', { locale: ru })} — {format(new Date(b.checkOut), 'd MMM', { locale: ru })}
+                        {format(parseLocalDate(b.checkIn), 'd MMM', { locale: ru })} — {format(parseLocalDate(b.checkOut), 'd MMM', { locale: ru })}
                       </p>
                     </div>
                     <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-md border ${status.bg} ${status.color} ${status.border} ml-3 shrink-0`}>

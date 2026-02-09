@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Booking, BookingStatus, ContactChannel, CHANNEL_MAP, STATUS_MAP } from '../types';
 import { ROOMS } from '../constants';
-import { calculateNights, formatPrice, getMoscowToday } from '../utils';
+import { calculateNights, formatPrice, getMoscowToday, parseLocalDate } from '../utils';
 import { X, Calendar as CalendarIcon, User, Phone, Banknote, Car, Clock, ChevronDown, Plus, Minus, Calculator, Globe } from 'lucide-react';
 import { format, addDays, differenceInDays } from 'date-fns';
 import { ru } from 'date-fns/locale/ru';
@@ -54,10 +54,8 @@ const BookingForm: React.FC<BookingFormProps> = ({
   // Split nights by month when booking spans two months
   const monthSplit = (() => {
     if (!formData.checkIn || !formData.checkOut || nights <= 0) return null;
-    const start = new Date(formData.checkIn.split('T')[0]);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(formData.checkOut.split('T')[0]);
-    end.setHours(0, 0, 0, 0);
+    const start = parseLocalDate(formData.checkIn);
+    const end = parseLocalDate(formData.checkOut);
     if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) return null;
     // Also skip if checkout is on the 1st (all nights belong to previous month)
     if (end.getDate() === 1) return null;
@@ -130,7 +128,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
   const handleNightsChange = (newNights: number) => {
     if (newNights < 1) return;
-    const checkInDate = new Date(formData.checkIn?.split('T')[0] || '');
+    const checkInDate = parseLocalDate(formData.checkIn || '');
     const newCheckOutDate = addDays(checkInDate, newNights);
     handleChange('checkOut', format(newCheckOutDate, "yyyy-MM-dd'T'12:00:00"));
   };
@@ -141,8 +139,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
   const formatDateForDisplay = (isoString: string) => {
     if (!isoString) return '';
-    const d = new Date(isoString);
-    return format(d, 'dd.MM.yyyy');
+    return format(parseLocalDate(isoString), 'dd.MM.yyyy');
   };
 
   return (
