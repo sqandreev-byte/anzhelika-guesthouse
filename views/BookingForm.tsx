@@ -107,18 +107,41 @@ const BookingForm: React.FC<BookingFormProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // CIS country codes (3-digit): Belarus, Kyrgyzstan, Uzbekistan, Tajikistan, Turkmenistan, Armenia, Azerbaijan, Georgia, Moldova
+  const CIS_CODES = ['375', '996', '998', '992', '993', '374', '994', '995', '373'];
+
   const handlePhoneChange = (value: string) => {
-    let val = value;
-    if (!val.startsWith('+7')) {
-      const digits = val.replace(/\D/g, '');
-      if (digits.startsWith('7') || digits.startsWith('8')) {
-        val = '+7 ' + digits.substring(1);
-      } else {
-        val = '+7 ' + digits;
+    let digits = value.replace(/\D/g, '');
+
+    if (!digits) {
+      handleChange('guestPhone', '+7 ');
+      return;
+    }
+
+    // 8XXXXXXXXXX → 7XXXXXXXXXX (Russian 8-prefix)
+    if (digits.startsWith('8') && digits.length >= 11) {
+      digits = '7' + digits.substring(1);
+    }
+
+    // Fix double prefix from paste (field already has "+7" + pasted "+7..." or "+375...")
+    if (digits.length >= 12 && digits.startsWith('7')) {
+      const rest = digits.substring(1);
+      if (rest.startsWith('7') && rest.length >= 11) {
+        digits = rest;
+      } else if (CIS_CODES.some(code => rest.startsWith(code))) {
+        digits = rest;
       }
     }
-    if (val.length < 3) val = '+7 ';
-    handleChange('guestPhone', val);
+
+    // Format with detected CIS country code
+    const cisCode = CIS_CODES.find(code => digits.startsWith(code));
+    if (cisCode) {
+      handleChange('guestPhone', '+' + cisCode + ' ' + digits.substring(cisCode.length));
+    } else if (digits.startsWith('7')) {
+      handleChange('guestPhone', '+7 ' + digits.substring(1));
+    } else {
+      handleChange('guestPhone', '+7 ' + digits);
+    }
   };
 
   const handleNumberChange = (field: keyof Booking, value: string) => {
